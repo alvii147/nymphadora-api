@@ -37,5 +37,10 @@ func (ctrl *Controller) route() {
 	ctrl.router.GET("/code/space/{name}/access", ctrl.HandleListCodespaceUsers, jwtMiddleware, loggerMiddleware)
 	ctrl.router.POST("/code/space/{name}/access", ctrl.HandleInviteCodeSpaceUser, jwtMiddleware, loggerMiddleware)
 	ctrl.router.DELETE("/code/space/{name}/access", ctrl.HandleRemoveCodeSpaceUser, jwtMiddleware, loggerMiddleware)
-	ctrl.router.DELETE("/code/space/{name}/access/accept", ctrl.HandleAcceptCodeSpaceUserInvitation, jwtMiddleware, loggerMiddleware)
+	ctrl.router.DELETE(
+		"/code/space/{name}/access/accept",
+		ctrl.HandleAcceptCodeSpaceUserInvitation,
+		jwtMiddleware,
+		loggerMiddleware,
+	)
 }

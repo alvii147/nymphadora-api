@@ -553,7 +553,11 @@ func (ctrl *Controller) HandleAcceptCodeSpaceUserInvitation(w *httputils.Respons
 		return
 	}
 
-	codeSpace, codeSpaceAccess, err := ctrl.codeService.AcceptCodeSpaceUserInvitation(r.Context(), codeSpaceName, req.Token)
+	codeSpace, codeSpaceAccess, err := ctrl.codeService.AcceptCodeSpaceUserInvitation(
+		r.Context(),
+		codeSpaceName,
+		req.Token,
+	)
 	if err != nil {
 		ctrl.logger.LogError(errutils.FormatError(err))
 		switch {
