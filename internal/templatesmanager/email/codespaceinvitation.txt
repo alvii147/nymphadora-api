@@ -1,0 +1,5 @@
+Nymphadora - You've been invited to collaborate on a code space
+
+You've been invited to collaborate on a code space:
+
+{{ .InvitationURL }}

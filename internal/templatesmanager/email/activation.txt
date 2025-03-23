@@ -1,0 +1,8 @@
+Nymphadora - Activate Your Account
+
+Glad to have you on board, {{ .RecipientEmail }}!
+Nymphadora is the code collaboration space you need.
+
+One last thing we need from you: activate your account! Just click the link below to activate your account:
+
+{{ .ActivationURL }}

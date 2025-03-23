@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: nymphadora-api-postgres
+    environment:
+      POSTGRES_DB: ${NYMPHADORAAPI_POSTGRES_DATABASE_NAME:-nymphadoradb}
+      POSTGRES_USER: ${NYMPHADORAAPI_POSTGRES_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${NYMPHADORAAPI_POSTGRES_PASSWORD:-postgres}
+    ports:
+      - ${NYMPHADORAAPI_POSTGRES_PORT:-5432}:${NYMPHADORAAPI_POSTGRES_PORT:-5432}
