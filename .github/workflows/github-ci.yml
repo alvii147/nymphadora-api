@@ -23,6 +23,17 @@ jobs:
       run: |
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin
 
+    - name: Run mod & vendor check
+      run: |
+        go mod tidy
+        go mod vendor
+        git diff --exit-code
+
+    - name: Run mocks check
+      run: |
+        make mocks
+        git diff --exit-code
+
     - name: Run lint check
       run: |
         make lint
