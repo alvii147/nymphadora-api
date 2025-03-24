@@ -5,6 +5,7 @@
 //
 //	mockgen -package=pistonmocks -source=piston.go -destination=./mocks/piston.go
 //
+
 // Package pistonmocks is a generated GoMock package.
 package pistonmocks
 
@@ -19,6 +20,7 @@ import (
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
+	isgomock struct{}
 }
 
 // MockClientMockRecorder is the mock recorder for MockClient.

@@ -5,6 +5,7 @@
 //
 //	mockgen -package=cryptocoremocks -source=crypto.go -destination=./mocks/crypto.go
 //
+
 // Package cryptocoremocks is a generated GoMock package.
 package cryptocoremocks
 
@@ -19,6 +20,7 @@ import (
 type MockCrypto struct {
 	ctrl     *gomock.Controller
 	recorder *MockCryptoMockRecorder
+	isgomock struct{}
 }
 
 // MockCryptoMockRecorder is the mock recorder for MockCrypto.

@@ -5,6 +5,7 @@
 //
 //	mockgen -package=mailclientmocks -source=mailclient.go -destination=./mocks/mailclient.go
 //
+
 // Package mailclientmocks is a generated GoMock package.
 package mailclientmocks
 
@@ -20,6 +21,7 @@ import (
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
+	isgomock struct{}
 }
 
 // MockClientMockRecorder is the mock recorder for MockClient.

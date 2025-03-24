@@ -5,6 +5,7 @@
 //
 //	mockgen -package=authmocks -source=service.go -destination=./mocks/service.go
 //
+
 // Package authmocks is a generated GoMock package.
 package authmocks
 
@@ -24,6 +25,7 @@ import (
 type MockService struct {
 	ctrl     *gomock.Controller
 	recorder *MockServiceMockRecorder
+	isgomock struct{}
 }
 
 // MockServiceMockRecorder is the mock recorder for MockService.

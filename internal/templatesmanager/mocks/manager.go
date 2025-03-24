@@ -5,6 +5,7 @@
 //
 //	mockgen -package=templatesmanagermocks -source=manager.go -destination=./mocks/manager.go
 //
+
 // Package templatesmanagermocks is a generated GoMock package.
 package templatesmanagermocks
 
@@ -20,6 +21,7 @@ import (
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
+	isgomock struct{}
 }
 
 // MockManagerMockRecorder is the mock recorder for MockManager.

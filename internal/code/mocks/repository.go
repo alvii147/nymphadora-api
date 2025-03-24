@@ -5,6 +5,7 @@
 //
 //	mockgen -package=codemocks -source=repository.go -destination=./mocks/repository.go
 //
+
 // Package codemocks is a generated GoMock package.
 package codemocks
 
@@ -22,6 +23,7 @@ import (
 type MockRepository struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryMockRecorder
+	isgomock struct{}
 }
 
 // MockRepositoryMockRecorder is the mock recorder for MockRepository.
