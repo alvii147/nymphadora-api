@@ -41,25 +41,22 @@ func TestCryptoCheckPassword(t *testing.T) {
 
 	hashedPassword := string(hashedPasswordBytes)
 
-	testcases := []struct {
-		name     string
+	testcases := map[string]struct {
 		password string
 		wantOk   bool
 	}{
-		{
-			name:     "Correct password",
+		"Correct password": {
 			password: correctPassword,
 			wantOk:   true,
 		},
-		{
-			name:     "Incorrect password",
+		"Incorrect password": {
 			password: incorrectPassword,
 			wantOk:   false,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			timeProvider := timekeeper.NewFrozenProvider()
@@ -79,25 +76,22 @@ func TestCryptoCreateAuthJWTSuccess(t *testing.T) {
 
 	c := cryptocore.NewCrypto(timeProvider, secretKey)
 
-	testcases := []struct {
-		name         string
+	testcases := map[string]struct {
 		tokenType    cryptocore.JWTType
 		wantLifetime time.Duration
 	}{
-		{
-			name:         "Access token",
+		"Access token": {
 			tokenType:    cryptocore.JWTTypeAccess,
 			wantLifetime: cryptocore.JWTLifetimeAccess,
 		},
-		{
-			name:         "Refresh token",
+		"Refresh token": {
 			tokenType:    cryptocore.JWTTypeRefresh,
 			wantLifetime: cryptocore.JWTLifetimeRefresh,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			userUUID := uuid.NewString()
@@ -207,57 +201,49 @@ func TestCryptoValidateAuthJWT(t *testing.T) {
 	).SignedString([]byte(validSecretKey))
 	require.NoError(t, err)
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		token     string
 		tokenType cryptocore.JWTType
 		secretKey string
 		wantOk    bool
 	}{
-		{
-			name:      "Valid access token",
+		"Valid access token": {
 			token:     validAccessToken,
 			tokenType: cryptocore.JWTTypeAccess,
 			secretKey: validSecretKey,
 			wantOk:    true,
 		},
-		{
-			name:      "Valid refresh token",
+		"Valid refresh token": {
 			token:     validRefreshToken,
 			tokenType: cryptocore.JWTTypeRefresh,
 			secretKey: validSecretKey,
 			wantOk:    true,
 		},
-		{
-			name:      "Invalid secret key",
+		"Invalid secret key": {
 			token:     validAccessToken,
 			tokenType: cryptocore.JWTTypeAccess,
 			secretKey: "invalidsecretkey",
 			wantOk:    false,
 		},
-		{
-			name:      "Token of invalid type",
+		"Token of invalid type": {
 			token:     tokenOfInvalidType,
 			tokenType: cryptocore.JWTTypeAccess,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Invalid token",
+		"Invalid token": {
 			token:     "ed0730889507fdb8549acfcd31548ee5",
 			tokenType: cryptocore.JWTTypeAccess,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Expired token",
+		"Expired token": {
 			token:     expiredToken,
 			tokenType: cryptocore.JWTTypeAccess,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Token with invalid claim",
+		"Token with invalid claim": {
 			token:     tokenWithInvalidClaim,
 			tokenType: cryptocore.JWTTypeAccess,
 			secretKey: validSecretKey,
@@ -265,8 +251,8 @@ func TestCryptoValidateAuthJWT(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			c := cryptocore.NewCrypto(timeProvider, testcase.secretKey)
@@ -367,52 +353,45 @@ func TestCryptoValidateActivationJWT(t *testing.T) {
 	).SignedString([]byte(validSecretKey))
 	require.NoError(t, err)
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		token     string
 		secretKey string
 		wantOk    bool
 	}{
-		{
-			name:      "Valid token of correct type",
+		"Valid token of correct type": {
 			token:     validToken,
 			secretKey: validSecretKey,
 			wantOk:    true,
 		},
-		{
-			name:      "Invalid secret key",
+		"Invalid secret key": {
 			token:     validToken,
 			secretKey: "invalidsecretkey",
 			wantOk:    false,
 		},
-		{
-			name:      "Token of incorrect type",
+		"Token of incorrect type": {
 			token:     tokenOfInvalidType,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Invalid token",
+		"Invalid token": {
 			token:     "ed0730889507fdb8549acfcd31548ee5",
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Expired token",
+		"Expired token": {
 			token:     expiredToken,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Token with invalid claim",
+		"Token with invalid claim": {
 			token:     tokenWithInvalidClaim,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			c := cryptocore.NewCrypto(timeProvider, testcase.secretKey)
@@ -452,22 +431,19 @@ func TestCryptoParseAPIKey(t *testing.T) {
 
 	timeProvider := timekeeper.NewFrozenProvider()
 
-	testcases := []struct {
-		name       string
+	testcases := map[string]struct {
 		key        string
 		wantPrefix string
 		wantSecret string
 		wantErr    bool
 	}{
-		{
-			name:       "Valid API key",
+		"Valid API key": {
 			key:        "TqxlYSSQ.Yj2j1jyAMC5407Nctsl51K7E8sOIPqYXn28SqT5Gnfg=",
 			wantPrefix: "TqxlYSSQ",
 			wantSecret: "Yj2j1jyAMC5407Nctsl51K7E8sOIPqYXn28SqT5Gnfg=",
 			wantErr:    false,
 		},
-		{
-			name:       "Invalid API key",
+		"Invalid API key": {
 			key:        "DeAdBeEf",
 			wantPrefix: "",
 			wantSecret: "",
@@ -475,8 +451,8 @@ func TestCryptoParseAPIKey(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			c := cryptocore.NewCrypto(timeProvider, "deadbeef")
@@ -598,52 +574,45 @@ func TestCryptoValidateCodeSpaceInvitationJWT(t *testing.T) {
 	).SignedString([]byte(validSecretKey))
 	require.NoError(t, err)
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		token     string
 		secretKey string
 		wantOk    bool
 	}{
-		{
-			name:      "Valid token of correct type",
+		"Valid token of correct type": {
 			token:     validToken,
 			secretKey: validSecretKey,
 			wantOk:    true,
 		},
-		{
-			name:      "Invalid secret key",
+		"Invalid secret key": {
 			token:     validToken,
 			secretKey: "invalidsecretkey",
 			wantOk:    false,
 		},
-		{
-			name:      "Token of incorrect type",
+		"Token of incorrect type": {
 			token:     tokenOfInvalidType,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Invalid token",
+		"Invalid token": {
 			token:     "ed0730889507fdb8549acfcd31548ee5",
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Expired token",
+		"Expired token": {
 			token:     expiredToken,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
-		{
-			name:      "Token with invalid claim",
+		"Token with invalid claim": {
 			token:     tokenWithInvalidClaim,
 			secretKey: validSecretKey,
 			wantOk:    false,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			c := cryptocore.NewCrypto(timeProvider, testcase.secretKey)

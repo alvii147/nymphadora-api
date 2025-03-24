@@ -71,38 +71,31 @@ func TestResponseWriterWriteError(t *testing.T) {
 func TestResponseWriterWriteHeader(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name       string
+	testcases := map[string]struct {
 		statusCode int
 	}{
-		{
-			name:       "Status code OK",
+		"Status code OK": {
 			statusCode: http.StatusOK,
 		},
-		{
-			name:       "Status code created",
+		"Status code created": {
 			statusCode: http.StatusCreated,
 		},
-		{
-			name:       "Status code moved permanently",
+		"Status code moved permanently": {
 			statusCode: http.StatusMovedPermanently,
 		},
-		{
-			name:       "Status code found",
+		"Status code found": {
 			statusCode: http.StatusFound,
 		},
-		{
-			name:       "Status code not found",
+		"Status code not found": {
 			statusCode: http.StatusNotFound,
 		},
-		{
-			name:       "Status code internal server error",
+		"Status code internal server error": {
 			statusCode: http.StatusInternalServerError,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			rec := httptest.NewRecorder()

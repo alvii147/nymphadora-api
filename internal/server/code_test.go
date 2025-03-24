@@ -26,8 +26,7 @@ func TestHandleCreateCodeSpace(t *testing.T) {
 	})
 	userAccessJWT, _ := testkitinternal.MustCreateUserAuthJWTs(user.UUID)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		headers        map[string]string
 		requestBody    string
 		wantStatusCode int
@@ -35,8 +34,7 @@ func TestHandleCreateCodeSpace(t *testing.T) {
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Valid request for Go code space",
+		"Valid request for Go code space": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -50,8 +48,7 @@ func TestHandleCreateCodeSpace(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Valid request for Python code space",
+		"Valid request for Python code space": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -65,8 +62,7 @@ func TestHandleCreateCodeSpace(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Unsupported language",
+		"Unsupported language": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -80,8 +76,7 @@ func TestHandleCreateCodeSpace(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "No language",
+		"No language": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -93,8 +88,7 @@ func TestHandleCreateCodeSpace(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name:    "Unauthenticated request",
+		"Unauthenticated request": {
 			headers: map[string]string{},
 			requestBody: `
 				{
@@ -108,8 +102,8 @@ func TestHandleCreateCodeSpace(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(

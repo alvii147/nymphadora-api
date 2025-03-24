@@ -26,30 +26,26 @@ import (
 func TestGetAPIKeyIDParam(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name         string
+	testcases := map[string]struct {
 		pathValues   map[string]string
 		wantAPIKeyID int64
 		wantErr      bool
 	}{
-		{
-			name: "Valid API key ID",
+		"Valid API key ID": {
 			pathValues: map[string]string{
 				"id": "42",
 			},
 			wantAPIKeyID: 42,
 			wantErr:      false,
 		},
-		{
-			name: "No API key ID",
+		"No API key ID": {
 			pathValues: map[string]string{
 				"dead": "beef",
 			},
 			wantAPIKeyID: 0,
 			wantErr:      true,
 		},
-		{
-			name: "Invalid API key ID",
+		"Invalid API key ID": {
 			pathValues: map[string]string{
 				"id": "deadbeef",
 			},
@@ -58,8 +54,8 @@ func TestGetAPIKeyIDParam(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req := &http.Request{}
@@ -94,15 +90,13 @@ func TestHandleCreateUser(t *testing.T) {
 	firstName := testkit.MustGenerateRandomString(8, true, true, false)
 	lastName := testkit.MustGenerateRandomString(8, true, true, false)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		requestBody    string
 		wantStatusCode int
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Valid request",
+		"Valid request": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -115,8 +109,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Existing email",
+		"Existing email": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -129,8 +122,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeResourceExists,
 			wantErrDetail:  api.ErrDetailUserExists,
 		},
-		{
-			name: "Invalid email",
+		"Invalid email": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "1nv4l1d3m41l",
@@ -143,8 +135,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Missing email",
+		"Missing email": {
 			requestBody: fmt.Sprintf(`
 				{
 					"password": "%s",
@@ -156,8 +147,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Empty email",
+		"Empty email": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "",
@@ -170,8 +160,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Missing password",
+		"Missing password": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -183,8 +172,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Empty password",
+		"Empty password": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -197,8 +185,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Missing first name",
+		"Missing first name": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -210,8 +197,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Empty first name",
+		"Empty first name": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -224,8 +210,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Missing last name",
+		"Missing last name": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -237,8 +222,7 @@ func TestHandleCreateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Empty last name",
+		"Empty last name": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -253,8 +237,8 @@ func TestHandleCreateUser(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(
@@ -346,15 +330,13 @@ func TestHandleActivateUser(t *testing.T) {
 	).SignedString([]byte(cfg.SecretKey))
 	require.NoError(t, err)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		requestBody    string
 		wantStatusCode int
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Inactive user",
+		"Inactive user": {
 			requestBody: fmt.Sprintf(`
 				{
 					"token": "%s"
@@ -364,8 +346,7 @@ func TestHandleActivateUser(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Already active user",
+		"Already active user": {
 			requestBody: fmt.Sprintf(`
 				{
 					"token": "%s"
@@ -375,8 +356,7 @@ func TestHandleActivateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeResourceNotFound,
 			wantErrDetail:  api.ErrDetailUserNotFound,
 		},
-		{
-			name: "Invalid token",
+		"Invalid token": {
 			requestBody: `
 				{
 					"token": "1nV4LiDT0k3n"
@@ -386,8 +366,7 @@ func TestHandleActivateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidToken,
 		},
-		{
-			name: "Missing token",
+		"Missing token": {
 			requestBody: `
 				{}
 			`,
@@ -397,8 +376,8 @@ func TestHandleActivateUser(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(
@@ -446,8 +425,7 @@ func TestHandleGetUserMe(t *testing.T) {
 	inactiveUserAccessJWT, _ := testkitinternal.MustCreateUserAuthJWTs(inactiveUser.UUID)
 	_, inactiveUserRawAPIKey := testkitinternal.MustCreateUserAPIKey(t, inactiveUser.UUID, nil)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		path           string
 		headers        map[string]string
 		user           *auth.User
@@ -455,8 +433,7 @@ func TestHandleGetUserMe(t *testing.T) {
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Get active user using JWT",
+		"Get active user using JWT": {
 			path: "/auth/users/me",
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -466,8 +443,7 @@ func TestHandleGetUserMe(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Get active user using API key",
+		"Get active user using API key": {
 			path: "/api/v1/auth/users/me",
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("X-API-Key %s", activeUserRawAPIKey),
@@ -477,8 +453,7 @@ func TestHandleGetUserMe(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Get inactive user using JWT",
+		"Get inactive user using JWT": {
 			path: "/auth/users/me",
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", inactiveUserAccessJWT),
@@ -488,8 +463,7 @@ func TestHandleGetUserMe(t *testing.T) {
 			wantErrCode:    api.ErrCodeResourceNotFound,
 			wantErrDetail:  api.ErrDetailUserNotFound,
 		},
-		{
-			name: "Get inactive user using API key",
+		"Get inactive user using API key": {
 			path: "/api/v1/auth/users/me",
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("X-API-Key %s", inactiveUserRawAPIKey),
@@ -499,8 +473,7 @@ func TestHandleGetUserMe(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidCredentials,
 			wantErrDetail:  api.ErrDetailInvalidToken,
 		},
-		{
-			name:           "Get user without authentication",
+		"Get user without authentication": {
 			path:           "/auth/users/me",
 			headers:        map[string]string{},
 			user:           nil,
@@ -510,8 +483,8 @@ func TestHandleGetUserMe(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(http.MethodGet, TestServerURL+testcase.path, http.NoBody)
@@ -593,8 +566,7 @@ func TestHandleUpdateUser(t *testing.T) {
 	})
 	inactiveUserAccessJWT, _ := testkitinternal.MustCreateUserAuthJWTs(inactiveUser.UUID)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		headers        map[string]string
 		requestBody    string
 		wantStatusCode int
@@ -603,8 +575,7 @@ func TestHandleUpdateUser(t *testing.T) {
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Update active user first and last names",
+		"Update active user first and last names": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT1),
 			},
@@ -620,8 +591,7 @@ func TestHandleUpdateUser(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Update active user first name",
+		"Update active user first name": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT2),
 			},
@@ -636,8 +606,7 @@ func TestHandleUpdateUser(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Update active user last name",
+		"Update active user last name": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT3),
 			},
@@ -652,8 +621,7 @@ func TestHandleUpdateUser(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Update inactive user first name and last name",
+		"Update inactive user first name and last name": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", inactiveUserAccessJWT),
 			},
@@ -669,8 +637,7 @@ func TestHandleUpdateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeResourceNotFound,
 			wantErrDetail:  api.ErrDetailUserNotFound,
 		},
-		{
-			name: "Update user with invalid first and last names",
+		"Update user with invalid first and last names": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT1),
 			},
@@ -686,8 +653,7 @@ func TestHandleUpdateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Update user with empty first and last names",
+		"Update user with empty first and last names": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT1),
 			},
@@ -703,8 +669,7 @@ func TestHandleUpdateUser(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name:    "Update user first and last names without authentication",
+		"Update user first and last names without authentication": {
 			headers: map[string]string{},
 			requestBody: fmt.Sprintf(`
 				{
@@ -720,8 +685,8 @@ func TestHandleUpdateUser(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			timeProvider := timekeeper.NewFrozenProvider()
@@ -777,15 +742,13 @@ func TestHandleCreateJWT(t *testing.T) {
 		u.IsActive = true
 	})
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		requestBody    string
 		wantStatusCode int
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Valid request",
+		"Valid request": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -796,8 +759,7 @@ func TestHandleCreateJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Incorrect password",
+		"Incorrect password": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -808,8 +770,7 @@ func TestHandleCreateJWT(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidCredentials,
 			wantErrDetail:  api.ErrDetailInvalidEmailOrPassword,
 		},
-		{
-			name: "Invalid email",
+		"Invalid email": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "1nv4l1d3M4iL",
@@ -820,8 +781,7 @@ func TestHandleCreateJWT(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Missing email",
+		"Missing email": {
 			requestBody: fmt.Sprintf(`
 				{
 					"password": "%s"
@@ -831,8 +791,7 @@ func TestHandleCreateJWT(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Empty email",
+		"Empty email": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "",
@@ -843,8 +802,7 @@ func TestHandleCreateJWT(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Missing password",
+		"Missing password": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s"
@@ -854,8 +812,7 @@ func TestHandleCreateJWT(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Empty password",
+		"Empty password": {
 			requestBody: fmt.Sprintf(`
 				{
 					"email": "%s",
@@ -868,8 +825,8 @@ func TestHandleCreateJWT(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(
@@ -961,15 +918,13 @@ func TestHandleRefreshJWT(t *testing.T) {
 	})
 	_, validRefreshToken := testkitinternal.MustCreateUserAuthJWTs(user.UUID)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		requestBody    string
 		wantStatusCode int
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Valid request",
+		"Valid request": {
 			requestBody: fmt.Sprintf(`
 				{
 					"refresh": "%s"
@@ -979,8 +934,7 @@ func TestHandleRefreshJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Invalid token",
+		"Invalid token": {
 			requestBody: `
 				{
 					"refresh": "iNv4liDT0k3N"
@@ -990,8 +944,7 @@ func TestHandleRefreshJWT(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Missing token",
+		"Missing token": {
 			requestBody: `
 				{}
 			`,
@@ -1001,8 +954,8 @@ func TestHandleRefreshJWT(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(
@@ -1140,16 +1093,14 @@ func TestHandleValidateJWT(t *testing.T) {
 	).SignedString([]byte(cfg.SecretKey))
 	require.NoError(t, err)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		requestBody    string
 		wantStatusCode int
 		wantValid      bool
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Valid access token",
+		"Valid access token": {
 			requestBody: fmt.Sprintf(`
 				{
 					"token": "%s"
@@ -1160,8 +1111,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Valid refresh token",
+		"Valid refresh token": {
 			requestBody: fmt.Sprintf(`
 				{
 					"token": "%s"
@@ -1172,8 +1122,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Invalid secret key",
+		"Invalid secret key": {
 			requestBody: fmt.Sprintf(`
 				{
 					"token": "%s"
@@ -1184,8 +1133,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Token of invalid type",
+		"Token of invalid type": {
 			requestBody: fmt.Sprintf(`
 				{
 					"token": "%s"
@@ -1196,8 +1144,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Invalid token",
+		"Invalid token": {
 			requestBody: `
 				{
 					"token": "ed0730889507fdb8549acfcd31548ee5"
@@ -1208,8 +1155,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Expired token",
+		"Expired token": {
 			requestBody: fmt.Sprintf(`
 				{
 					"token": "%s"
@@ -1220,8 +1166,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Token with invalid claim",
+		"Token with invalid claim": {
 			requestBody: fmt.Sprintf(`
 				{
 					"token": "%s"
@@ -1232,8 +1177,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Empty token",
+		"Empty token": {
 			requestBody: `
 				{
 					"token": ""
@@ -1244,8 +1188,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Missing token",
+		"Missing token": {
 			requestBody: `
 				{}
 			`,
@@ -1254,8 +1197,7 @@ func TestHandleValidateJWT(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Invalid request data",
+		"Invalid request data": {
 			requestBody: `
 				{
 					"token": 42
@@ -1268,8 +1210,8 @@ func TestHandleValidateJWT(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(
@@ -1321,8 +1263,7 @@ func TestHandleCreateAPIKey(t *testing.T) {
 	expirationDate := time.Date(2038, 1, 19, 3, 14, 8, 0, time.UTC)
 	expirationDateString := "2038-01-19T03:14:08Z"
 
-	testcases := []struct {
-		name               string
+	testcases := map[string]struct {
 		headers            map[string]string
 		requestBody        string
 		wantStatusCode     int
@@ -1331,8 +1272,7 @@ func TestHandleCreateAPIKey(t *testing.T) {
 		wantErrCode        string
 		wantErrDetail      string
 	}{
-		{
-			name: "Valid request with no expiration date",
+		"Valid request with no expiration date": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -1347,8 +1287,7 @@ func TestHandleCreateAPIKey(t *testing.T) {
 			wantErrCode:        "",
 			wantErrDetail:      "",
 		},
-		{
-			name: "Valid request with expiration date",
+		"Valid request with expiration date": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -1364,8 +1303,7 @@ func TestHandleCreateAPIKey(t *testing.T) {
 			wantErrCode:        "",
 			wantErrDetail:      "",
 		},
-		{
-			name: "Name missing",
+		"Name missing": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -1380,8 +1318,7 @@ func TestHandleCreateAPIKey(t *testing.T) {
 			wantErrCode:        api.ErrCodeInvalidRequest,
 			wantErrDetail:      api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Invalid expiration date",
+		"Invalid expiration date": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -1397,8 +1334,7 @@ func TestHandleCreateAPIKey(t *testing.T) {
 			wantErrCode:        api.ErrCodeInvalidRequest,
 			wantErrDetail:      api.ErrDetailInvalidRequestData,
 		},
-		{
-			name:    "Unauthenticated request",
+		"Unauthenticated request": {
 			headers: map[string]string{},
 			requestBody: `
 				{
@@ -1411,8 +1347,7 @@ func TestHandleCreateAPIKey(t *testing.T) {
 			wantErrCode:        api.ErrCodeMissingCredentials,
 			wantErrDetail:      api.ErrDetailMissingToken,
 		},
-		{
-			name: "API key exists",
+		"API key exists": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", userAccessJWT),
 			},
@@ -1429,8 +1364,8 @@ func TestHandleCreateAPIKey(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(
@@ -1495,16 +1430,14 @@ func TestHandleListAPIKeys(t *testing.T) {
 	inactiveUserAccessJWT, _ := testkitinternal.MustCreateUserAuthJWTs(inactiveUser.UUID)
 	testkitinternal.MustCreateUserAPIKey(t, inactiveUser.UUID, nil)
 
-	testcases := []struct {
-		name                  string
+	testcases := map[string]struct {
 		headers               map[string]string
 		wantStatusCode        int
 		wantAPIKeysInResponse bool
 		wantErrCode           string
 		wantErrDetail         string
 	}{
-		{
-			name: "List API keys for active user",
+		"List API keys for active user": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
 			},
@@ -1513,8 +1446,7 @@ func TestHandleListAPIKeys(t *testing.T) {
 			wantErrCode:           "",
 			wantErrDetail:         "",
 		},
-		{
-			name: "List API keys for inactive user",
+		"List API keys for inactive user": {
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", inactiveUserAccessJWT),
 			},
@@ -1523,8 +1455,7 @@ func TestHandleListAPIKeys(t *testing.T) {
 			wantErrCode:           api.ErrCodeResourceNotFound,
 			wantErrDetail:         api.ErrDetailUserNotFound,
 		},
-		{
-			name:                  "List API keys without authentication",
+		"List API keys without authentication": {
 			headers:               map[string]string{},
 			wantStatusCode:        http.StatusUnauthorized,
 			wantAPIKeysInResponse: false,
@@ -1533,8 +1464,8 @@ func TestHandleListAPIKeys(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(
@@ -1622,8 +1553,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 	inactiveUserAccessJWT, _ := testkitinternal.MustCreateUserAuthJWTs(inactiveUser.UUID)
 	inactiveUserAPIKey, _ := testkitinternal.MustCreateUserAPIKey(t, inactiveUser.UUID, nil)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		path           string
 		headers        map[string]string
 		requestBody    string
@@ -1633,8 +1563,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Update name, update expires at from valid date to valid date",
+		"Update name, update expires at from valid date to valid date": {
 			path: fmt.Sprintf("/auth/api-keys/%d", activeUserAPIKey1.ID),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -1651,8 +1580,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Update name, update expires at from valid date to null",
+		"Update name, update expires at from valid date to null": {
 			path: fmt.Sprintf("/auth/api-keys/%d", activeUserAPIKey2.ID),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -1669,8 +1597,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Update name only",
+		"Update name only": {
 			path: fmt.Sprintf("/auth/api-keys/%d", activeUserAPIKey3.ID),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -1686,8 +1613,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Update name to empty string fails",
+		"Update name to empty string fails": {
 			path: fmt.Sprintf("/auth/api-keys/%d", activeUserAPIKey1.ID),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -1703,8 +1629,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Updating using invalid API Key ID fails",
+		"Updating using invalid API Key ID fails": {
 			path: fmt.Sprintf("/auth/api-keys/%s", "invalidID"),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -1720,8 +1645,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 			wantErrCode:    api.ErrCodeInvalidRequest,
 			wantErrDetail:  api.ErrDetailInvalidRequestData,
 		},
-		{
-			name: "Updating using non-existent API Key ID fails",
+		"Updating using non-existent API Key ID fails": {
 			path: fmt.Sprintf("/auth/api-keys/%d", 314159),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -1737,8 +1661,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 			wantErrCode:    api.ErrCodeResourceNotFound,
 			wantErrDetail:  api.ErrDetailAPIKeyNotFound,
 		},
-		{
-			name:    "Updating without authentication fails",
+		"Updating without authentication fails": {
 			path:    fmt.Sprintf("/auth/api-keys/%d", activeUserAPIKey1.ID),
 			headers: map[string]string{},
 			requestBody: `
@@ -1752,8 +1675,7 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 			wantErrCode:    api.ErrCodeMissingCredentials,
 			wantErrDetail:  api.ErrDetailMissingToken,
 		},
-		{
-			name: "Updating API Key for inactive user fails",
+		"Updating API Key for inactive user fails": {
 			path: fmt.Sprintf("/auth/api-keys/%d", inactiveUserAPIKey.ID),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", inactiveUserAccessJWT),
@@ -1771,8 +1693,8 @@ func TestHandleUpdateAPIKey(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			timeProvider := timekeeper.NewFrozenProvider()
@@ -1845,16 +1767,14 @@ func TestHandleDeleteAPIKey(t *testing.T) {
 	inactiveUserAccessJWT, _ := testkitinternal.MustCreateUserAuthJWTs(inactiveUser.UUID)
 	inactiveUserAPIKey, _ := testkitinternal.MustCreateUserAPIKey(t, inactiveUser.UUID, nil)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		path           string
 		headers        map[string]string
 		wantStatusCode int
 		wantErrCode    string
 		wantErrDetail  string
 	}{
-		{
-			name: "Delete API key for active user",
+		"Delete API key for active user": {
 			path: fmt.Sprintf("/auth/api-keys/%d", activeUserAPIKey1.ID),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -1863,8 +1783,7 @@ func TestHandleDeleteAPIKey(t *testing.T) {
 			wantErrCode:    "",
 			wantErrDetail:  "",
 		},
-		{
-			name: "Delete API key for inactive user",
+		"Delete API key for inactive user": {
 			path: fmt.Sprintf("/auth/api-keys/%d", inactiveUserAPIKey.ID),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", inactiveUserAccessJWT),
@@ -1873,8 +1792,7 @@ func TestHandleDeleteAPIKey(t *testing.T) {
 			wantErrCode:    api.ErrCodeResourceNotFound,
 			wantErrDetail:  api.ErrDetailAPIKeyNotFound,
 		},
-		{
-			name: "Delete API key for another user",
+		"Delete API key for another user": {
 			path: fmt.Sprintf("/auth/api-keys/%d", activeUserAPIKey2.ID),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", inactiveUserAccessJWT),
@@ -1883,8 +1801,7 @@ func TestHandleDeleteAPIKey(t *testing.T) {
 			wantErrCode:    api.ErrCodeResourceNotFound,
 			wantErrDetail:  api.ErrDetailAPIKeyNotFound,
 		},
-		{
-			name: "Delete non-existent API key",
+		"Delete non-existent API key": {
 			path: fmt.Sprintf("/auth/api-keys/%d", 314159),
 			headers: map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", activeUserAccessJWT),
@@ -1893,8 +1810,7 @@ func TestHandleDeleteAPIKey(t *testing.T) {
 			wantErrCode:    api.ErrCodeResourceNotFound,
 			wantErrDetail:  api.ErrDetailAPIKeyNotFound,
 		},
-		{
-			name:           "Delete API key without authentication",
+		"Delete API key without authentication": {
 			path:           fmt.Sprintf("/auth/api-keys/%d", activeUserAPIKey2.ID),
 			headers:        map[string]string{},
 			wantStatusCode: http.StatusUnauthorized,
@@ -1903,8 +1819,8 @@ func TestHandleDeleteAPIKey(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(http.MethodDelete, TestServerURL+testcase.path, http.NoBody)

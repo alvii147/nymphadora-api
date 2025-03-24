@@ -18,64 +18,55 @@ import (
 func TestLogTraffic(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name       string
+	testcases := map[string]struct {
 		statusCode int
 		method     string
 		wantLevel  string
 		wantStderr bool
 	}{
-		{
-			name:       "200 status code with GET request causes info level log",
+		"200 status code with GET request causes info level log": {
 			statusCode: http.StatusOK,
 			method:     http.MethodGet,
 			wantLevel:  "I",
 			wantStderr: false,
 		},
-		{
-			name:       "200 status code with POST request causes info level log",
+		"200 status code with POST request causes info level log": {
 			statusCode: http.StatusOK,
 			method:     http.MethodPost,
 			wantLevel:  "I",
 			wantStderr: false,
 		},
-		{
-			name:       "201 status code causes info level log",
+		"201 status code causes info level log": {
 			statusCode: http.StatusCreated,
 			method:     http.MethodGet,
 			wantLevel:  "I",
 			wantStderr: false,
 		},
-		{
-			name:       "302 status code causes info level log",
+		"302 status code causes info level log": {
 			statusCode: http.StatusFound,
 			method:     http.MethodGet,
 			wantLevel:  "I",
 			wantStderr: false,
 		},
-		{
-			name:       "400 status code causes warn level log",
+		"400 status code causes warn level log": {
 			statusCode: http.StatusBadRequest,
 			method:     http.MethodGet,
 			wantLevel:  "W",
 			wantStderr: false,
 		},
-		{
-			name:       "404 status code causes warn level log",
+		"404 status code causes warn level log": {
 			statusCode: http.StatusNotFound,
 			method:     http.MethodGet,
 			wantLevel:  "W",
 			wantStderr: false,
 		},
-		{
-			name:       "500 status code causes error level log",
+		"500 status code causes error level log": {
 			statusCode: http.StatusInternalServerError,
 			method:     http.MethodGet,
 			wantLevel:  "E",
 			wantStderr: true,
 		},
-		{
-			name:       "501 status code causes error level log",
+		"501 status code causes error level log": {
 			statusCode: http.StatusNotImplemented,
 			method:     http.MethodGet,
 			wantLevel:  "E",
@@ -83,8 +74,8 @@ func TestLogTraffic(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			bufOut, bufErr, logger := testkit.CreateInMemLogger()
@@ -132,64 +123,55 @@ func TestLogTraffic(t *testing.T) {
 func TestLoggerMiddleware(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name       string
+	testcases := map[string]struct {
 		statusCode int
 		method     string
 		wantLevel  string
 		wantStderr bool
 	}{
-		{
-			name:       "200 status code with GET request causes info level log",
+		"200 status code with GET request causes info level log": {
 			statusCode: http.StatusOK,
 			method:     http.MethodGet,
 			wantLevel:  "I",
 			wantStderr: false,
 		},
-		{
-			name:       "200 status code with POST request causes info level log",
+		"200 status code with POST request causes info level log": {
 			statusCode: http.StatusOK,
 			method:     http.MethodPost,
 			wantLevel:  "I",
 			wantStderr: false,
 		},
-		{
-			name:       "201 status code causes info level log",
+		"201 status code causes info level log": {
 			statusCode: http.StatusCreated,
 			method:     http.MethodGet,
 			wantLevel:  "I",
 			wantStderr: false,
 		},
-		{
-			name:       "302 status code causes info level log",
+		"302 status code causes info level log": {
 			statusCode: http.StatusFound,
 			method:     http.MethodGet,
 			wantLevel:  "I",
 			wantStderr: false,
 		},
-		{
-			name:       "400 status code causes warn level log",
+		"400 status code causes warn level log": {
 			statusCode: http.StatusBadRequest,
 			method:     http.MethodGet,
 			wantLevel:  "W",
 			wantStderr: false,
 		},
-		{
-			name:       "404 status code causes warn level log",
+		"404 status code causes warn level log": {
 			statusCode: http.StatusNotFound,
 			method:     http.MethodGet,
 			wantLevel:  "W",
 			wantStderr: false,
 		},
-		{
-			name:       "500 status code causes error level log",
+		"500 status code causes error level log": {
 			statusCode: http.StatusInternalServerError,
 			method:     http.MethodGet,
 			wantLevel:  "E",
 			wantStderr: true,
 		},
-		{
-			name:       "501 status code causes error level log",
+		"501 status code causes error level log": {
 			statusCode: http.StatusNotImplemented,
 			method:     http.MethodGet,
 			wantLevel:  "E",
@@ -197,8 +179,8 @@ func TestLoggerMiddleware(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			nextCallCount := 0

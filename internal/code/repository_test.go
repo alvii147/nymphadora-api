@@ -111,42 +111,37 @@ func TestRepositoryListCodeSpaces(t *testing.T) {
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := code.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name                   string
+	testcases := map[string]struct {
 		userUUID               string
 		wantCodeSpaceAccessMap map[int64]code.CodeSpaceAccessLevel
 	}{
-		{
-			name:     "Author can access both shared and private code spaces",
+		"Author can access both shared and private code spaces": {
 			userUUID: author.UUID,
 			wantCodeSpaceAccessMap: map[int64]code.CodeSpaceAccessLevel{
 				sharedCodeSpace.ID:  code.CodeSpaceAccessLevelReadWrite,
 				privateCodeSpace.ID: code.CodeSpaceAccessLevelReadWrite,
 			},
 		},
-		{
-			name:     "Editor can access shared code space",
+		"Editor can access shared code space": {
 			userUUID: editor.UUID,
 			wantCodeSpaceAccessMap: map[int64]code.CodeSpaceAccessLevel{
 				sharedCodeSpace.ID: code.CodeSpaceAccessLevelReadWrite,
 			},
 		},
-		{
-			name:     "Viewer can access shared code space",
+		"Viewer can access shared code space": {
 			userUUID: viewer.UUID,
 			wantCodeSpaceAccessMap: map[int64]code.CodeSpaceAccessLevel{
 				sharedCodeSpace.ID: code.CodeSpaceAccessLevelReadOnly,
 			},
 		},
-		{
-			name:                   "Third party user cannot access any code space",
+		"Third party user cannot access any code space": {
 			userUUID:               thirdPartyUser.UUID,
 			wantCodeSpaceAccessMap: map[int64]code.CodeSpaceAccessLevel{},
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
@@ -217,64 +212,55 @@ func TestRepositoryGetCodeSpaceWithAccessByName(t *testing.T) {
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
 	repo := code.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name            string
+	testcases := map[string]struct {
 		userUUID        string
 		codeSpace       *code.CodeSpace
 		wantAccessible  bool
 		wantAccessLevel code.CodeSpaceAccessLevel
 	}{
-		{
-			name:            "Author can access shared code space",
+		"Author can access shared code space": {
 			userUUID:        author.UUID,
 			codeSpace:       sharedCodeSpace,
 			wantAccessible:  true,
 			wantAccessLevel: code.CodeSpaceAccessLevelReadWrite,
 		},
-		{
-			name:            "Author can access private code space",
+		"Author can access private code space": {
 			userUUID:        author.UUID,
 			codeSpace:       privateCodeSpace,
 			wantAccessible:  true,
 			wantAccessLevel: code.CodeSpaceAccessLevelReadWrite,
 		},
-		{
-			name:            "Editor can access shared code space",
+		"Editor can access shared code space": {
 			userUUID:        editor.UUID,
 			codeSpace:       sharedCodeSpace,
 			wantAccessible:  true,
 			wantAccessLevel: code.CodeSpaceAccessLevelReadWrite,
 		},
-		{
-			name:            "Editor cannot access private code space",
+		"Editor cannot access private code space": {
 			userUUID:        editor.UUID,
 			codeSpace:       privateCodeSpace,
 			wantAccessible:  false,
 			wantAccessLevel: 0,
 		},
-		{
-			name:            "Viewer can access shared code space",
+		"Viewer can access shared code space": {
 			userUUID:        viewer.UUID,
 			codeSpace:       sharedCodeSpace,
 			wantAccessible:  true,
 			wantAccessLevel: code.CodeSpaceAccessLevelReadOnly,
 		},
-		{
-			name:            "Viewer cannot access private code space",
+		"Viewer cannot access private code space": {
 			userUUID:        viewer.UUID,
 			codeSpace:       privateCodeSpace,
 			wantAccessible:  false,
 			wantAccessLevel: 0,
 		},
-		{
-			name:            "Third party user cannot access shared code space",
+		"Third party user cannot access shared code space": {
 			userUUID:        thirdPartyUser.UUID,
 			codeSpace:       sharedCodeSpace,
 			wantAccessible:  false,
 			wantAccessLevel: 0,
 		},
-		{
-			name:            "Third party user cannot access private code space",
+		"Third party user cannot access private code space": {
 			userUUID:        thirdPartyUser.UUID,
 			codeSpace:       privateCodeSpace,
 			wantAccessible:  false,
@@ -282,8 +268,8 @@ func TestRepositoryGetCodeSpaceWithAccessByName(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
@@ -363,30 +349,27 @@ func TestRepositoryUpdateCodeSpaceError(t *testing.T) {
 	repo := code.NewRepository(timeProvider)
 	updatedContents := "print('FizzBuzz')"
 
-	testcases := []struct {
-		name            string
+	testcases := map[string]struct {
 		codeSpaceID     int64
 		updatedContents *string
 	}{
-		{
-			name:            "Update non-existent code space",
+		"Update non-existent code space": {
 			codeSpaceID:     314159265,
 			updatedContents: &updatedContents,
 		},
-		{
-			name:            "Update blank update",
+		"Update blank update": {
 			codeSpaceID:     codeSpace.ID,
 			updatedContents: nil,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
 
-			_, err := repo.UpdateCodeSpace(context.Background(), dbConn, codeSpace.ID, nil)
+			_, err := repo.UpdateCodeSpace(context.Background(), dbConn, testcase.codeSpaceID, testcase.updatedContents)
 			require.Error(t, err)
 			require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsAffected)
 		})
@@ -471,36 +454,31 @@ func TestRepositoryCreateOrUpdateCodeSpaceAccess(t *testing.T) {
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
 	repo := code.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name        string
+	testcases := map[string]struct {
 		userUUID    string
 		codeSpaceID int64
 		accessLevel code.CodeSpaceAccessLevel
 		wantErr     bool
 	}{
-		{
-			name:        "Create code space access for invitee without access",
+		"Create code space access for invitee without access": {
 			userUUID:    invitee.UUID,
 			codeSpaceID: codeSpace.ID,
 			accessLevel: code.CodeSpaceAccessLevelReadOnly,
 			wantErr:     false,
 		},
-		{
-			name:        "Update code space access for editor to revoke write access",
+		"Update code space access for editor to revoke write access": {
 			userUUID:    editor.UUID,
 			codeSpaceID: codeSpace.ID,
 			accessLevel: code.CodeSpaceAccessLevelReadOnly,
 			wantErr:     false,
 		},
-		{
-			name:        "Update code space access for viewer to grant write access",
+		"Update code space access for viewer to grant write access": {
 			userUUID:    viewer.UUID,
 			codeSpaceID: codeSpace.ID,
 			accessLevel: code.CodeSpaceAccessLevelReadWrite,
 			wantErr:     false,
 		},
-		{
-			name:        "Non-existent code space ID",
+		"Non-existent code space ID": {
 			userUUID:    author.UUID,
 			codeSpaceID: 314159265,
 			accessLevel: code.CodeSpaceAccessLevelReadOnly,
@@ -508,8 +486,8 @@ func TestRepositoryCreateOrUpdateCodeSpaceAccess(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			codeSpaceAccess := &code.CodeSpaceAccess{

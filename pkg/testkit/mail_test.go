@@ -78,26 +78,22 @@ Text Message
 --deadbeef
 	`
 
-	testcases := []struct {
-		name string
-		msg  string
+	testcases := map[string]struct {
+		msg string
 	}{
-		{
-			name: "Invalid message",
-			msg:  invalidMsg,
+		"Invalid message": {
+			msg: invalidMsg,
 		},
-		{
-			name: "Message with invalid content type",
-			msg:  msgWithInvalidContentType,
+		"Message with invalid content type": {
+			msg: msgWithInvalidContentType,
 		},
-		{
-			name: "Message with one section",
-			msg:  msgWithOneSection,
+		"Message with one section": {
+			msg: msgWithOneSection,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			require.Panics(t, func() {

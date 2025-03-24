@@ -90,8 +90,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 	}
 	validStatusCode := 200
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		wantNextCall   bool
 		wantErr        bool
 		wantErrCode    string
@@ -99,8 +98,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 		setAuthHeader  bool
 		authHeader     string
 	}{
-		{
-			name:           "Authentication with valid JWT is successful",
+		"Authentication with valid JWT is successful": {
 			wantNextCall:   true,
 			wantErr:        false,
 			wantErrCode:    "",
@@ -108,8 +106,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 			setAuthHeader:  true,
 			authHeader:     fmt.Sprintf("Bearer %s", validAccessToken),
 		},
-		{
-			name:           "Authentication with no authorization header is unauthorized",
+		"Authentication with no authorization header is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeMissingCredentials,
@@ -117,8 +114,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 			setAuthHeader:  false,
 			authHeader:     "",
 		},
-		{
-			name:           "Authentication with invalid authentication type is unauthorized",
+		"Authentication with invalid authentication type is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeMissingCredentials,
@@ -126,8 +122,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 			setAuthHeader:  true,
 			authHeader:     fmt.Sprintf("Invalidauthtype %s", validAccessToken),
 		},
-		{
-			name:           "Authentication with invalid JWT is unauthorized",
+		"Authentication with invalid JWT is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeInvalidCredentials,
@@ -135,8 +130,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 			setAuthHeader:  true,
 			authHeader:     "Bearer ed0730889507fdb8549acfcd31548ee5",
 		},
-		{
-			name:           "Authentication with expired JWT is unauthorized",
+		"Authentication with expired JWT is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeInvalidCredentials,
@@ -144,8 +138,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 			setAuthHeader:  true,
 			authHeader:     fmt.Sprintf("Bearer %s", expiredToken),
 		},
-		{
-			name:           "Authentication with valid JWT of invalid type is unauthorized",
+		"Authentication with valid JWT of invalid type is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeInvalidCredentials,
@@ -153,8 +146,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 			setAuthHeader:  true,
 			authHeader:     fmt.Sprintf("Bearer %s", tokenOfInvalidType),
 		},
-		{
-			name:           "Authentication with JWT with invalid claim is unauthorized",
+		"Authentication with JWT with invalid claim is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeInvalidCredentials,
@@ -164,8 +156,8 @@ func TestJWTAuthMiddleware(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			nextCallCount := 0
@@ -252,8 +244,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 	}
 	validStatusCode := 200
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		wantNextCall   bool
 		wantErr        bool
 		wantErrCode    string
@@ -261,8 +252,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 		setAuthHeader  bool
 		authHeader     string
 	}{
-		{
-			name:           "Authentication with valid API key is successful",
+		"Authentication with valid API key is successful": {
 			wantNextCall:   true,
 			wantErr:        false,
 			wantErrCode:    "",
@@ -270,8 +260,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 			setAuthHeader:  true,
 			authHeader:     fmt.Sprintf("X-API-Key %s", validAPIKey),
 		},
-		{
-			name:           "Authentication with no authorization header is unauthorized",
+		"Authentication with no authorization header is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeMissingCredentials,
@@ -279,8 +268,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 			setAuthHeader:  false,
 			authHeader:     "",
 		},
-		{
-			name:           "Authentication with invalid authentication type is unauthorized",
+		"Authentication with invalid authentication type is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeMissingCredentials,
@@ -288,8 +276,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 			setAuthHeader:  true,
 			authHeader:     fmt.Sprintf("Invalidauthtype %s", validAPIKey),
 		},
-		{
-			name:           "Authentication with invalid API key is unauthorized",
+		"Authentication with invalid API key is unauthorized": {
 			wantNextCall:   false,
 			wantErr:        true,
 			wantErrCode:    api.ErrCodeInvalidCredentials,
@@ -299,8 +286,8 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			nextCallCount := 0

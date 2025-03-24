@@ -61,8 +61,7 @@ func TestOptionalMarshalJSON(t *testing.T) {
 	stringValue := "deadbeef"
 	timeValue := time.Date(2010, 12, 16, 19, 12, 36, 0, time.UTC)
 
-	testcases := []struct {
-		name        string
+	testcases := map[string]struct {
 		intValid    bool
 		intValue    *int
 		stringValid bool
@@ -71,8 +70,7 @@ func TestOptionalMarshalJSON(t *testing.T) {
 		timeValue   *time.Time
 		wantRegexp  string
 	}{
-		{
-			name:        "Valid values",
+		"Valid values": {
 			intValid:    true,
 			intValue:    &intValue,
 			stringValid: true,
@@ -81,8 +79,7 @@ func TestOptionalMarshalJSON(t *testing.T) {
 			timeValue:   &timeValue,
 			wantRegexp:  `^\s*{\s*"int"\s*:\s*42\s*,\s*"string"\s*:\s*"deadbeef"\s*,\s*"time"\s*:\s*"2010-12-16T19:12:36Z"}\s*$`,
 		},
-		{
-			name:        "Nil values",
+		"Nil values": {
 			intValid:    true,
 			intValue:    nil,
 			stringValid: true,
@@ -91,8 +88,7 @@ func TestOptionalMarshalJSON(t *testing.T) {
 			timeValue:   nil,
 			wantRegexp:  `^\s*{\s*"int"\s*:\s*null\s*,\s*"string"\s*:\s*null\s*,\s*"time"\s*:\s*null}\s*$`,
 		},
-		{
-			name:        "Missing values",
+		"Missing values": {
 			intValid:    false,
 			intValue:    &intValue,
 			stringValid: false,
@@ -103,8 +99,8 @@ func TestOptionalMarshalJSON(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			p, err := json.Marshal(jsonStruct{
@@ -140,8 +136,7 @@ func TestJSONOptionalUnmarshalJSON(t *testing.T) {
 	stringValue := "deadbeef"
 	timeValue := time.Date(2010, 12, 16, 19, 12, 36, 0, time.UTC)
 
-	testcases := []struct {
-		name            string
+	testcases := map[string]struct {
 		data            []byte
 		wantErr         bool
 		wantIntValid    bool
@@ -151,8 +146,7 @@ func TestJSONOptionalUnmarshalJSON(t *testing.T) {
 		wantTimeValid   bool
 		wantTime        *time.Time
 	}{
-		{
-			name: "Valid values",
+		"Valid values": {
 			data: []byte(`{
 				"int": 42,
 				"string": "deadbeef",
@@ -166,8 +160,7 @@ func TestJSONOptionalUnmarshalJSON(t *testing.T) {
 			wantTimeValid:   true,
 			wantTime:        &timeValue,
 		},
-		{
-			name: "Null values",
+		"Null values": {
 			data: []byte(`{
 				"int": null,
 				"string": null,
@@ -181,8 +174,7 @@ func TestJSONOptionalUnmarshalJSON(t *testing.T) {
 			wantTimeValid:   true,
 			wantTime:        nil,
 		},
-		{
-			name:            "Missing values",
+		"Missing values": {
 			data:            []byte(`{}`),
 			wantErr:         false,
 			wantIntValid:    false,
@@ -192,8 +184,7 @@ func TestJSONOptionalUnmarshalJSON(t *testing.T) {
 			wantTimeValid:   false,
 			wantTime:        nil,
 		},
-		{
-			name: "Invalid values",
+		"Invalid values": {
 			data: []byte(`{
 				"int": "dead",
 				"string": 42,
@@ -209,8 +200,8 @@ func TestJSONOptionalUnmarshalJSON(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			s := jsonStruct{}

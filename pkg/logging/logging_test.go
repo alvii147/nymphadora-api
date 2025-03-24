@@ -31,40 +31,35 @@ func TestLogger(t *testing.T) {
 	require.Len(t, stdoutMessages, 3)
 	require.Len(t, stderrMessages, 1)
 
-	testcases := []struct {
-		name            string
+	testcases := map[string]struct {
 		capturedMessage string
 		wantMessage     string
 		wantLevel       string
 	}{
-		{
-			name:            debugMessage,
+		"Debug": {
 			capturedMessage: stdoutMessages[0],
 			wantMessage:     debugMessage,
 			wantLevel:       "D",
 		},
-		{
-			name:            infoMessage,
+		"Info": {
 			capturedMessage: stdoutMessages[1],
 			wantMessage:     infoMessage,
 			wantLevel:       "I",
 		},
-		{
-			name:            warnMessage,
+		"Warning": {
 			capturedMessage: stdoutMessages[2],
 			wantMessage:     warnMessage,
 			wantLevel:       "W",
 		},
-		{
-			name:            errorMessage,
+		"Error": {
 			capturedMessage: stderrMessages[0],
 			wantMessage:     errorMessage,
 			wantLevel:       "E",
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			logLevel, logTime, logFile, logMsg := testkit.MustParseLogMessage(testcase.capturedMessage)

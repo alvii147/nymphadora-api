@@ -28,24 +28,21 @@ func TestPistonClientExecute(t *testing.T) {
 
 	client := piston.NewClient(nil, httputils.NewHTTPClient(nil))
 
-	testcases := []struct {
-		name               string
+	testcases := map[string]struct {
 		fileName           string
 		language           string
 		version            string
 		code               string
 		wantCompileResults bool
 	}{
-		{
-			name:               "Execute C code, expect compilation results",
+		"Execute C code, expect compilation results": {
 			fileName:           "main.c",
 			language:           api.PistonLanguageC,
 			version:            api.PistonVersionC,
 			code:               CCode,
 			wantCompileResults: true,
 		},
-		{
-			name:               "Execute Python code, expect only runtime results",
+		"Execute Python code, expect only runtime results": {
 			fileName:           "main.py",
 			language:           api.PistonLanguagePython,
 			version:            api.PistonVersionPython,
@@ -54,8 +51,8 @@ func TestPistonClientExecute(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			fileEncoding := "utf8"

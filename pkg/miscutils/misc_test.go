@@ -10,40 +10,34 @@ import (
 func TestMaskEmail(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		email     string
 		wantEmail string
 	}{
-		{
-			name:      "Regular email",
+		"Regular email": {
 			email:     "davos.seaworth@westeros.com",
 			wantEmail: "d*****h@westeros.com",
 		},
-		{
-			name:      "Email with 2-character username",
+		"Email with 2-character username": {
 			email:     "ds@westeros.com",
 			wantEmail: "d*****s@westeros.com",
 		},
-		{
-			name:      "Email with 1-character username",
+		"Email with 1-character username": {
 			email:     "d@westeros.com",
 			wantEmail: "d*****d@westeros.com",
 		},
-		{
-			name:      "Email with no username",
+		"Email with no username": {
 			email:     "@westeros.com",
 			wantEmail: "*****@westeros.com",
 		},
-		{
-			name:      "Invalid email",
+		"Invalid email": {
 			email:     "davos.seaworthATwesteros.com",
 			wantEmail: "*****",
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			maskedEmail := miscutils.MaskEmail(testcase.email)

@@ -27,30 +27,26 @@ func FormatErrorfCaller(err error, format string, args ...any) error {
 func TestTrimFuncName(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name                string
+	testcases := map[string]struct {
 		funcName            string
 		wantTrimmedFuncName string
 	}{
-		{
-			name:                "Function",
+		"Function": {
 			funcName:            "github.com/username/project/dir/package.Func",
 			wantTrimmedFuncName: "package.Func",
 		},
-		{
-			name:                "Receiver",
+		"Receiver": {
 			funcName:            "github.com/username/project/dir/package.Struct.Func",
 			wantTrimmedFuncName: "package.Struct.Func",
 		},
-		{
-			name:                "Pointer receiver",
+		"Pointer receiver": {
 			funcName:            "github.com/username/project/dir/package.(*Struct).Func",
 			wantTrimmedFuncName: "package.(*Struct).Func",
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			trimmedFuncName := errutils.TrimFuncName(testcase.funcName)
@@ -69,21 +65,18 @@ func TestJoin(t *testing.T) {
 func TestFormatError(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name          string
+	testcases := map[string]struct {
 		err           error
 		msgs          []any
 		wantErrString string
 	}{
-		{
-			name: "No messages",
+		"No messages": {
 			err:  errors.New("wrapped error"),
 			msgs: nil,
 			wantErrString: "errutils_test.FormatErrorCallerWrapper " +
 				"-> errutils_test.FormatErrorCaller -> wrapped error",
 		},
-		{
-			name: "Including messages",
+		"Including messages": {
 			err:  errors.New("wrapped error"),
 			msgs: []any{"included", "messages"},
 			wantErrString: "errutils_test.FormatErrorCallerWrapper: " +
@@ -91,8 +84,7 @@ func TestFormatError(t *testing.T) {
 				"errutils_test.FormatErrorCaller: " +
 				"included messages -> wrapped error",
 		},
-		{
-			name: "Nil error",
+		"Nil error": {
 			err:  nil,
 			msgs: []any{"included", "messages"},
 			wantErrString: "errutils_test.FormatErrorCallerWrapper: " +
@@ -101,8 +93,8 @@ func TestFormatError(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			err := FormatErrorCallerWrapper(testcase.err, testcase.msgs...)
@@ -117,23 +109,20 @@ func TestFormatError(t *testing.T) {
 func TestFormatErrorf(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name          string
+	testcases := map[string]struct {
 		err           error
 		format        string
 		args          []any
 		wantErrString string
 	}{
-		{
-			name:   "No formatted messages",
+		"No formatted messages": {
 			err:    errors.New("wrapped error"),
 			format: "",
 			args:   nil,
 			wantErrString: "errutils_test.FormatErrorfCallerWrapper " +
 				"-> errutils_test.FormatErrorfCaller -> wrapped error",
 		},
-		{
-			name:   "Including formatted messages",
+		"Including formatted messages": {
 			err:    errors.New("wrapped error"),
 			format: "%s-%d",
 			args:   []any{"deadbeef", 42},
@@ -141,8 +130,7 @@ func TestFormatErrorf(t *testing.T) {
 				"deadbeef-42 -> errutils_test.FormatErrorfCaller: " +
 				"deadbeef-42 -> wrapped error",
 		},
-		{
-			name:   "Nil error",
+		"Nil error": {
 			err:    nil,
 			format: "%s-%d",
 			args:   []any{"deadbeef", 42},
@@ -152,8 +140,8 @@ func TestFormatErrorf(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			err := FormatErrorfCallerWrapper(testcase.err, testcase.format, testcase.args...)

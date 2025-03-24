@@ -11,24 +11,21 @@ import (
 func TestMustParseLogMessageSuccess(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		rawMsg    string
 		wantLevel string
 		wantTime  time.Time
 		wantFile  string
 		wantMsg   string
 	}{
-		{
-			name:      "Info message",
+		"Info message": {
 			rawMsg:    "[I] 2016/08/19 16:03:46 /file/path:30 0xDEADBEEF",
 			wantLevel: "I",
 			wantTime:  time.Date(2016, 8, 19, 16, 3, 46, 0, time.UTC),
 			wantFile:  "/file/path",
 			wantMsg:   "0xDEADBEEF",
 		},
-		{
-			name:      "Warning message with irregular spacing",
+		"Warning message with irregular spacing": {
 			rawMsg:    "[W]  2016/08/19     16:03:46 /file/path:30             0x DEAD BEEF",
 			wantLevel: "W",
 			wantTime:  time.Date(2016, 8, 19, 16, 3, 46, 0, time.UTC),
@@ -37,8 +34,8 @@ func TestMustParseLogMessageSuccess(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			logLevel, logTime, logFile, logMsg := testkit.MustParseLogMessage(testcase.rawMsg)
@@ -53,26 +50,22 @@ func TestMustParseLogMessageSuccess(t *testing.T) {
 func TestMustParseLogMessageError(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name   string
+	testcases := map[string]struct {
 		rawMsg string
 	}{
-		{
-			name:   "Invalid message",
+		"Invalid message": {
 			rawMsg: "1nv4l1d m3554g3",
 		},
-		{
-			name:   "Invalid level",
+		"Invalid level": {
 			rawMsg: "[C] 2016/08/19 16:03:46 /file/path:30 0xDEADBEEF",
 		},
-		{
-			name:   "Invalid time",
+		"Invalid time": {
 			rawMsg: "[I] 2016/31/42 28:67:82 /file/path:30 0xDEADBEEF",
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			require.Panics(t, func() {

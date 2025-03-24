@@ -14,28 +14,25 @@ func TestGetUserUUIDFromContext(t *testing.T) {
 
 	userUUID := uuid.NewString()
 
-	testcases := []struct {
-		name         string
+	testcases := map[string]struct {
 		ctx          context.Context
 		wantUserUUID string
 		wantErr      bool
 	}{
-		{
-			name:         "User UUID in context",
+		"User UUID in context": {
 			ctx:          context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			wantUserUUID: userUUID,
 			wantErr:      false,
 		},
-		{
-			name:         "No user UUID in context",
+		"No user UUID in context": {
 			ctx:          context.Background(),
 			wantUserUUID: "",
 			wantErr:      true,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			userUUID, err := auth.GetUserUUIDFromContext(testcase.ctx)

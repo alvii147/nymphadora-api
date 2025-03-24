@@ -125,40 +125,35 @@ func TestServiceCreateCodeSpaceError(t *testing.T) {
 	genericCreateCodeSpaceRepoErr := errors.New("CreateCodeSpace failed")
 	genericCreateCodeSpaceAccessRepoErr := errors.New("CreateOrUpdateCodeSpaceAccess failed")
 
-	testcases := []struct {
-		name                         string
+	testcases := map[string]struct {
 		ctx                          context.Context
 		language                     string
 		createCodeSpaceRepoErr       error
 		createCodeSpaceAccessRepoErr error
 		wantErr                      error
 	}{
-		{
-			name:                         "No user in context",
+		"No user in context": {
 			ctx:                          context.Background(),
 			language:                     "python",
 			createCodeSpaceRepoErr:       nil,
 			createCodeSpaceAccessRepoErr: nil,
 			wantErr:                      nil,
 		},
-		{
-			name:                         "Unsupported language",
+		"Unsupported language": {
 			ctx:                          context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, author.UUID),
 			language:                     "parseltongue",
 			createCodeSpaceRepoErr:       nil,
 			createCodeSpaceAccessRepoErr: nil,
 			wantErr:                      errutils.ErrCodeSpaceUnsupportedLanguage,
 		},
-		{
-			name:                         "CreateCodeSpace fails",
+		"CreateCodeSpace fails": {
 			ctx:                          context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, author.UUID),
 			language:                     "python",
 			createCodeSpaceRepoErr:       genericCreateCodeSpaceRepoErr,
 			createCodeSpaceAccessRepoErr: nil,
 			wantErr:                      genericCreateCodeSpaceRepoErr,
 		},
-		{
-			name:                         "CreateOrUpdateCodeSpaceAccess fails",
+		"CreateOrUpdateCodeSpaceAccess fails": {
 			ctx:                          context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, author.UUID),
 			language:                     "python",
 			createCodeSpaceRepoErr:       nil,
@@ -167,8 +162,8 @@ func TestServiceCreateCodeSpaceError(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -271,42 +266,37 @@ func TestServiceListCodeSpacesSuccess(t *testing.T) {
 		u.IsActive = true
 	})
 
-	testcases := []struct {
-		name                   string
+	testcases := map[string]struct {
 		userUUID               string
 		wantCodeSpaceAccessMap map[int64]code.CodeSpaceAccessLevel
 	}{
-		{
-			name:     "Author can access both shared and private code spaces",
+		"Author can access both shared and private code spaces": {
 			userUUID: author.UUID,
 			wantCodeSpaceAccessMap: map[int64]code.CodeSpaceAccessLevel{
 				sharedCodeSpace.ID:  code.CodeSpaceAccessLevelReadWrite,
 				privateCodeSpace.ID: code.CodeSpaceAccessLevelReadWrite,
 			},
 		},
-		{
-			name:     "Editor can access shared code space",
+		"Editor can access shared code space": {
 			userUUID: editor.UUID,
 			wantCodeSpaceAccessMap: map[int64]code.CodeSpaceAccessLevel{
 				sharedCodeSpace.ID: code.CodeSpaceAccessLevelReadWrite,
 			},
 		},
-		{
-			name:     "Viewer can access shared code space",
+		"Viewer can access shared code space": {
 			userUUID: viewer.UUID,
 			wantCodeSpaceAccessMap: map[int64]code.CodeSpaceAccessLevel{
 				sharedCodeSpace.ID: code.CodeSpaceAccessLevelReadOnly,
 			},
 		},
-		{
-			name:                   "Third party user cannot access any code space",
+		"Third party user cannot access any code space": {
 			userUUID:               thirdPartyUser.UUID,
 			wantCodeSpaceAccessMap: map[int64]code.CodeSpaceAccessLevel{},
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -369,28 +359,25 @@ func TestServiceListCodeSpacesError(t *testing.T) {
 	userUUID := uuid.NewString()
 	genericRepoErr := errors.New("ListCodeSpaces failed")
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		ctx     context.Context
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "No user UUID in context",
+		"No user UUID in context": {
 			ctx:     context.Background(),
 			repoErr: nil,
 			wantErr: nil,
 		},
-		{
-			name:    "ListCodeSpaces fails",
+		"ListCodeSpaces fails": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: genericRepoErr,
 			wantErr: genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -466,64 +453,55 @@ func TestServiceGetCodeSpace(t *testing.T) {
 		u.IsActive = true
 	})
 
-	testcases := []struct {
-		name            string
+	testcases := map[string]struct {
 		userUUID        string
 		codeSpace       *code.CodeSpace
 		wantErr         error
 		wantAccessLevel code.CodeSpaceAccessLevel
 	}{
-		{
-			name:            "Author can access shared code space",
+		"Author can access shared code space": {
 			userUUID:        author.UUID,
 			codeSpace:       sharedCodeSpace,
 			wantErr:         nil,
 			wantAccessLevel: code.CodeSpaceAccessLevelReadWrite,
 		},
-		{
-			name:            "Author can access private code space",
+		"Author can access private code space": {
 			userUUID:        author.UUID,
 			codeSpace:       privateCodeSpace,
 			wantErr:         nil,
 			wantAccessLevel: code.CodeSpaceAccessLevelReadWrite,
 		},
-		{
-			name:            "Editor can access shared code space",
+		"Editor can access shared code space": {
 			userUUID:        editor.UUID,
 			codeSpace:       sharedCodeSpace,
 			wantErr:         nil,
 			wantAccessLevel: code.CodeSpaceAccessLevelReadWrite,
 		},
-		{
-			name:            "Editor cannot access private code space",
+		"Editor cannot access private code space": {
 			userUUID:        editor.UUID,
 			codeSpace:       privateCodeSpace,
 			wantErr:         errutils.ErrCodeSpaceNotFound,
 			wantAccessLevel: 0,
 		},
-		{
-			name:            "Viewer can access shared code space",
+		"Viewer can access shared code space": {
 			userUUID:        viewer.UUID,
 			codeSpace:       sharedCodeSpace,
 			wantErr:         nil,
 			wantAccessLevel: code.CodeSpaceAccessLevelReadOnly,
 		},
-		{
-			name:            "Viewer cannot access private code space",
+		"Viewer cannot access private code space": {
 			userUUID:        viewer.UUID,
 			codeSpace:       privateCodeSpace,
 			wantErr:         errutils.ErrCodeSpaceNotFound,
 			wantAccessLevel: 0,
 		},
-		{
-			name:            "Third party user cannot access shared code space",
+		"Third party user cannot access shared code space": {
 			userUUID:        thirdPartyUser.UUID,
 			codeSpace:       sharedCodeSpace,
 			wantErr:         errutils.ErrCodeSpaceNotFound,
 			wantAccessLevel: 0,
 		},
-		{
-			name:            "Third party user cannot access private code space",
+		"Third party user cannot access private code space": {
 			userUUID:        thirdPartyUser.UUID,
 			codeSpace:       privateCodeSpace,
 			wantErr:         errutils.ErrCodeSpaceNotFound,
@@ -531,8 +509,8 @@ func TestServiceGetCodeSpace(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -593,28 +571,25 @@ func TestServiceGetCodeSpaceError(t *testing.T) {
 	codeSpaceName := "habitable-slaking-volatile-granger-mov"
 	genericRepoErr := errors.New("GetCodeSpaceWithAccessByName failed")
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		ctx     context.Context
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "No user UUID in context",
+		"No user UUID in context": {
 			ctx:     context.Background(),
 			repoErr: nil,
 			wantErr: nil,
 		},
-		{
-			name:    "GetCodeSpaceWithAccessByName fails",
+		"GetCodeSpaceWithAccessByName fails": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: genericRepoErr,
 			wantErr: genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -793,25 +768,22 @@ func TestServiceUpdateCodeSpaceFails(t *testing.T) {
 		u.IsActive = true
 	})
 
-	testcases := []struct {
-		name     string
+	testcases := map[string]struct {
 		userUUID string
 		wantErr  error
 	}{
-		{
-			name:     "Viewer cannot update code space",
+		"Viewer cannot update code space": {
 			userUUID: viewer.UUID,
 			wantErr:  errutils.ErrCodeSpaceAccessDenied,
 		},
-		{
-			name:     "Third party user cannot update code space",
+		"Third party user cannot update code space": {
 			userUUID: thirdPartyUser.UUID,
 			wantErr:  errutils.ErrCodeSpaceNotFound,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -873,36 +845,31 @@ func TestServiceUpdateCodeSpaceError(t *testing.T) {
 	genericRepoGetErr := errors.New("GetCodeSpaceWithAccessByName failed")
 	genericRepoUpdateErr := errors.New("UpdateCodeSpace failed")
 
-	testcases := []struct {
-		name          string
+	testcases := map[string]struct {
 		ctx           context.Context
 		repoGetErr    error
 		repoUpdateErr error
 		wantErr       error
 	}{
-		{
-			name:          "No user UUID in context",
+		"No user UUID in context": {
 			ctx:           context.Background(),
 			repoGetErr:    nil,
 			repoUpdateErr: nil,
 			wantErr:       nil,
 		},
-		{
-			name:          "GetCodeSpaceWithAccessByName fails, no rows returned",
+		"GetCodeSpaceWithAccessByName fails, no rows returned": {
 			ctx:           context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			repoGetErr:    errutils.ErrDatabaseNoRowsReturned,
 			repoUpdateErr: nil,
 			wantErr:       errutils.ErrCodeSpaceNotFound,
 		},
-		{
-			name:          "GetCodeSpaceWithAccessByName fails, generic error",
+		"GetCodeSpaceWithAccessByName fails, generic error": {
 			ctx:           context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			repoGetErr:    genericRepoGetErr,
 			repoUpdateErr: nil,
 			wantErr:       genericRepoGetErr,
 		},
-		{
-			name:          "UpdateCodeSpace fails",
+		"UpdateCodeSpace fails": {
 			ctx:           context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			repoGetErr:    nil,
 			repoUpdateErr: genericRepoUpdateErr,
@@ -910,8 +877,8 @@ func TestServiceUpdateCodeSpaceError(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1076,25 +1043,22 @@ func TestServiceDeleteCodeSpaceFails(t *testing.T) {
 		u.IsActive = true
 	})
 
-	testcases := []struct {
-		name     string
+	testcases := map[string]struct {
 		userUUID string
 		wantErr  error
 	}{
-		{
-			name:     "Viewer cannot delete code space",
+		"Viewer cannot delete code space": {
 			userUUID: viewer.UUID,
 			wantErr:  errutils.ErrCodeSpaceAccessDenied,
 		},
-		{
-			name:     "Third party user cannot delete code space",
+		"Third party user cannot delete code space": {
 			userUUID: thirdPartyUser.UUID,
 			wantErr:  errutils.ErrCodeSpaceNotFound,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1150,36 +1114,31 @@ func TestServiceDeleteCodeSpaceError(t *testing.T) {
 	genericRepoGetErr := errors.New("GetCodeSpaceWithAccessByName failed")
 	genericRepoDeleteErr := errors.New("DeleteCodeSpace failed")
 
-	testcases := []struct {
-		name          string
+	testcases := map[string]struct {
 		ctx           context.Context
 		repoGetErr    error
 		repoDeleteErr error
 		wantErr       error
 	}{
-		{
-			name:          "No user UUID in context",
+		"No user UUID in context": {
 			ctx:           context.Background(),
 			repoGetErr:    nil,
 			repoDeleteErr: nil,
 			wantErr:       nil,
 		},
-		{
-			name:          "GetCodeSpaceWithAccessByName fails, no rows returned",
+		"GetCodeSpaceWithAccessByName fails, no rows returned": {
 			ctx:           context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			repoGetErr:    errutils.ErrDatabaseNoRowsReturned,
 			repoDeleteErr: nil,
 			wantErr:       errutils.ErrCodeSpaceNotFound,
 		},
-		{
-			name:          "GetCodeSpaceWithAccessByName fails, generic error",
+		"GetCodeSpaceWithAccessByName fails, generic error": {
 			ctx:           context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			repoGetErr:    genericRepoGetErr,
 			repoDeleteErr: nil,
 			wantErr:       genericRepoGetErr,
 		},
-		{
-			name:          "DeleteCodeSpace fails",
+		"DeleteCodeSpace fails": {
 			ctx:           context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			repoGetErr:    nil,
 			repoDeleteErr: genericRepoDeleteErr,
@@ -1187,8 +1146,8 @@ func TestServiceDeleteCodeSpaceError(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1246,15 +1205,13 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 
 	exitCodeZero := 0
 
-	testcases := []struct {
-		name                string
+	testcases := map[string]struct {
 		language            string
 		wantVersion         string
 		wantCompileResponse *api.PistonResults
 		wantRunResponse     api.PistonResults
 	}{
-		{
-			name:        "Run C code space",
+		"Run C code space": {
 			language:    api.PistonLanguageC,
 			wantVersion: api.PistonVersionC,
 			wantCompileResponse: &api.PistonResults{
@@ -1272,8 +1229,7 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 				Output: "Yello!\n",
 			},
 		},
-		{
-			name:        "Run C++ code space",
+		"Run C++ code space": {
 			language:    api.PistonLanguageCPlusPlus,
 			wantVersion: api.PistonVersionCPlusPlus,
 			wantCompileResponse: &api.PistonResults{
@@ -1291,8 +1247,7 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 				Output: "Yello!\n",
 			},
 		},
-		{
-			name:                "Run Go code space",
+		"Run Go code space": {
 			language:            api.PistonLanguageGo,
 			wantVersion:         api.PistonVersionGo,
 			wantCompileResponse: nil,
@@ -1304,8 +1259,7 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 				Output: "Yello!\n",
 			},
 		},
-		{
-			name:                "Run Java code space",
+		"Run Java code space": {
 			language:            api.PistonLanguageJava,
 			wantVersion:         api.PistonVersionJava,
 			wantCompileResponse: nil,
@@ -1317,8 +1271,7 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 				Output: "Yello!\n",
 			},
 		},
-		{
-			name:                "Run JavaScript code space",
+		"Run JavaScript code space": {
 			language:            api.PistonLanguageJavaScript,
 			wantVersion:         api.PistonVersionJavaScript,
 			wantCompileResponse: nil,
@@ -1330,8 +1283,7 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 				Output: "Yello!\n",
 			},
 		},
-		{
-			name:                "Run Python code space",
+		"Run Python code space": {
 			language:            api.PistonLanguagePython,
 			wantVersion:         api.PistonVersionPython,
 			wantCompileResponse: nil,
@@ -1343,8 +1295,7 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 				Output: "Yello!\n",
 			},
 		},
-		{
-			name:        "Run Rust code space",
+		"Run Rust code space": {
 			language:    api.PistonLanguageRust,
 			wantVersion: api.PistonVersionRust,
 			wantCompileResponse: &api.PistonResults{
@@ -1362,8 +1313,7 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 				Output: "Yello!\n",
 			},
 		},
-		{
-			name:                "Run TypeScript code space",
+		"Run TypeScript code space": {
 			language:            api.PistonLanguageTypeScript,
 			wantVersion:         api.PistonVersionTypeScript,
 			wantCompileResponse: nil,
@@ -1377,8 +1327,8 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, testcase.language)
 
@@ -1425,48 +1375,42 @@ func TestServiceRunCodeSpaceError(t *testing.T) {
 	genericRepoErr := errors.New("GetCodeSpaceWithAccessByName failed")
 	genericPistonErr := errors.New("Execute failed")
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		ctx       context.Context
 		language  string
 		repoErr   error
 		pistonErr error
 		wantErr   error
 	}{
-		{
-			name:      "No user UUID in context",
+		"No user UUID in context": {
 			ctx:       context.Background(),
 			language:  "python",
 			repoErr:   nil,
 			pistonErr: nil,
 			wantErr:   nil,
 		},
-		{
-			name:      "GetCodeSpaceWithAccessByName fails, no rows returned",
+		"GetCodeSpaceWithAccessByName fails, no rows returned": {
 			ctx:       context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			language:  "python",
 			repoErr:   errutils.ErrDatabaseNoRowsReturned,
 			pistonErr: nil,
 			wantErr:   errutils.ErrCodeSpaceNotFound,
 		},
-		{
-			name:      "GetCodeSpaceWithAccessByName fails, generic error",
+		"GetCodeSpaceWithAccessByName fails, generic error": {
 			ctx:       context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			language:  "python",
 			repoErr:   genericRepoErr,
 			pistonErr: nil,
 			wantErr:   genericRepoErr,
 		},
-		{
-			name:      "Unknown language",
+		"Unknown language": {
 			ctx:       context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			language:  "unknown",
 			repoErr:   nil,
 			pistonErr: nil,
 			wantErr:   nil,
 		},
-		{
-			name:      "Execute fails",
+		"Execute fails": {
 			ctx:       context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
 			language:  "python",
 			repoErr:   nil,
@@ -1475,8 +1419,8 @@ func TestServiceRunCodeSpaceError(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)

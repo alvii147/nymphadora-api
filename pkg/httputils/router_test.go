@@ -55,58 +55,50 @@ func TestRouterMethods(t *testing.T) {
 
 	httpClient := httputils.NewHTTPClient(nil)
 
-	testcases := []struct {
-		name           string
+	testcases := map[string]struct {
 		method         string
 		path           string
 		wantStatusCode int
 	}{
-		{
-			name:           "GET request",
+		"GET request": {
 			method:         http.MethodGet,
 			path:           "/path/get",
 			wantStatusCode: http.StatusOK,
 		},
-		{
-			name:           "POST request",
+		"POST request": {
 			method:         http.MethodPost,
 			path:           "/path/post",
 			wantStatusCode: http.StatusOK,
 		},
-		{
-			name:           "PUT request",
+		"PUT request": {
 			method:         http.MethodPut,
 			path:           "/path/put",
 			wantStatusCode: http.StatusOK,
 		},
-		{
-			name:           "PATCH request",
+		"PATCH request": {
 			method:         http.MethodPatch,
 			path:           "/path/patch",
 			wantStatusCode: http.StatusOK,
 		},
-		{
-			name:           "DELETE request",
+		"DELETE request": {
 			method:         http.MethodDelete,
 			path:           "/path/delete",
 			wantStatusCode: http.StatusOK,
 		},
-		{
-			name:           "Unregistered path",
+		"Unregistered path": {
 			method:         http.MethodGet,
 			path:           "/path/deadbeef",
 			wantStatusCode: http.StatusNotFound,
 		},
-		{
-			name:           "Unsupported method",
+		"Unsupported method": {
 			method:         http.MethodPost,
 			path:           "/path/get",
 			wantStatusCode: http.StatusMethodNotAllowed,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(
@@ -251,26 +243,22 @@ func TestRouterRootHeaders(t *testing.T) {
 
 	httpClient := httputils.NewHTTPClient(nil)
 
-	testcases := []struct {
-		name   string
+	testcases := map[string]struct {
 		method string
 	}{
-		{
-			name:   "GET request",
+		"GET request": {
 			method: http.MethodGet,
 		},
-		{
-			name:   "POST request",
+		"POST request": {
 			method: http.MethodPost,
 		},
-		{
-			name:   "OPTIONS request",
+		"OPTIONS request": {
 			method: http.MethodOptions,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest(

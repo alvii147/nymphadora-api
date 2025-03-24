@@ -162,28 +162,25 @@ func TestServiceCreateUserError(t *testing.T) {
 	hashPasswordErr := errors.New("HashPassword failed")
 	genericRepoErr := errors.New("CreateUser failed")
 
-	testcases := []struct {
-		name            string
+	testcases := map[string]struct {
 		hashPasswordErr error
 		repoErr         error
 		wantErr         error
 	}{
-		{
-			name:            "HashPassword fails",
+		"HashPassword fails": {
 			hashPasswordErr: hashPasswordErr,
 			repoErr:         nil,
 			wantErr:         hashPasswordErr,
 		},
-		{
-			name:            "Generic repo error",
+		"Generic repo error": {
 			hashPasswordErr: nil,
 			repoErr:         genericRepoErr,
 			wantErr:         genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -366,28 +363,25 @@ func TestServiceSendUserActivationMailError(t *testing.T) {
 	tmplLoadErr := errors.New("Load failed")
 	mailSendErr := errors.New("Send failed")
 
-	testcases := []struct {
-		name        string
+	testcases := map[string]struct {
 		tmplLoadErr error
 		mailSendErr error
 		wantErr     error
 	}{
-		{
-			name:        "template Load fails",
+		"template Load fails": {
 			tmplLoadErr: tmplLoadErr,
 			mailSendErr: nil,
 			wantErr:     tmplLoadErr,
 		},
-		{
-			name:        "mail Send fails",
+		"mail Send fails": {
 			tmplLoadErr: nil,
 			mailSendErr: mailSendErr,
 			wantErr:     mailSendErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -514,40 +508,35 @@ func TestServiceActivateUserError(t *testing.T) {
 	).SignedString([]byte(cfg.SecretKey))
 	require.NoError(t, err)
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		token   string
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "Invalid token",
+		"Invalid token": {
 			token:   invalidToken,
 			repoErr: nil,
 			wantErr: errutils.ErrInvalidToken,
 		},
-		{
-			name:    "Expired token",
+		"Expired token": {
 			token:   expiredToken,
 			repoErr: nil,
 			wantErr: errutils.ErrInvalidToken,
 		},
-		{
-			name:    "User not found",
+		"User not found": {
 			repoErr: errutils.ErrDatabaseNoRowsAffected,
 			token:   validToken,
 			wantErr: errutils.ErrUserNotFound,
 		},
-		{
-			name:    "Activate user fails",
+		"Activate user fails": {
 			repoErr: genericRepoErr,
 			token:   validToken,
 			wantErr: genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -612,34 +601,30 @@ func TestServiceGetAuthenticatedUserError(t *testing.T) {
 	userUUID := uuid.NewString()
 	genericRepoErr := errors.New("GetUserByUUID failed")
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		ctx     context.Context
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "No user UUID in context",
+		"No user UUID in context": {
 			ctx:     context.Background(),
 			repoErr: nil,
 			wantErr: nil,
 		},
-		{
-			name:    "User not found",
+		"User not found": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: errutils.ErrDatabaseNoRowsReturned,
 			wantErr: errutils.ErrUserNotFound,
 		},
-		{
-			name:    "Generic repo error",
+		"Generic repo error": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: genericRepoErr,
 			wantErr: genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -689,29 +674,25 @@ func TestServiceUpdateAuthenticatedUserSuccess(t *testing.T) {
 	repo := auth.NewRepository(timeProvider)
 	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
-	testcases := []struct {
-		name          string
+	testcases := map[string]struct {
 		firstName     *string
 		lastName      *string
 		wantFirstName string
 		wantLastName  string
 	}{
-		{
-			name:          "Update both first and last names",
+		"Update both first and last names": {
 			firstName:     &updatedFirstName,
 			lastName:      &updatedLastName,
 			wantFirstName: updatedFirstName,
 			wantLastName:  updatedLastName,
 		},
-		{
-			name:          "Update only first name",
+		"Update only first name": {
 			firstName:     &updatedFirstName,
 			lastName:      nil,
 			wantFirstName: updatedFirstName,
 			wantLastName:  startingLastName,
 		},
-		{
-			name:          "Update only last name",
+		"Update only last name": {
 			firstName:     nil,
 			lastName:      &updatedLastName,
 			wantFirstName: startingFirstName,
@@ -719,8 +700,8 @@ func TestServiceUpdateAuthenticatedUserSuccess(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			user, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
@@ -751,34 +732,30 @@ func TestServiceUpdateAuthenticatedUserError(t *testing.T) {
 	updatedLastName := "updatedLastName"
 	genericRepoErr := errors.New("UpdateUser failed")
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		ctx     context.Context
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "No user UUID in context",
+		"No user UUID in context": {
 			ctx:     context.Background(),
 			repoErr: nil,
 			wantErr: nil,
 		},
-		{
-			name:    "User not found",
+		"User not found": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: errutils.ErrDatabaseNoRowsAffected,
 			wantErr: errutils.ErrUserNotFound,
 		},
-		{
-			name:    "Generic repo error",
+		"Generic repo error": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: genericRepoErr,
 			wantErr: genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -875,25 +852,22 @@ func TestServiceCreateJWTIncorrectCredentials(t *testing.T) {
 
 	cfg := testkitinternal.MustCreateConfig()
 
-	testcases := []struct {
-		name     string
+	testcases := map[string]struct {
 		email    string
 		password string
 	}{
-		{
-			name:     "Incorrect email",
+		"Incorrect email": {
 			email:    testkit.GenerateFakeEmail(),
 			password: password,
 		},
-		{
-			name:     "Incorrect password",
+		"Incorrect password": {
 			email:    user.Email,
 			password: testkit.GenerateFakePassword(),
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -926,8 +900,7 @@ func TestServiceCreateJWTError(t *testing.T) {
 	createAccessJWTErr := errors.New("CreateAuthJWT failed for access token")
 	createRefreshJWTErr := errors.New("CreateAuthJWT failed for refresh token")
 
-	testcases := []struct {
-		name                string
+	testcases := map[string]struct {
 		userIsActive        bool
 		passwordCorrect     bool
 		repoErr             error
@@ -935,8 +908,7 @@ func TestServiceCreateJWTError(t *testing.T) {
 		createRefreshJWTErr error
 		wantErr             error
 	}{
-		{
-			name:                "Inactive user",
+		"Inactive user": {
 			userIsActive:        false,
 			passwordCorrect:     true,
 			repoErr:             nil,
@@ -944,8 +916,7 @@ func TestServiceCreateJWTError(t *testing.T) {
 			createRefreshJWTErr: nil,
 			wantErr:             errutils.ErrInvalidCredentials,
 		},
-		{
-			name:                "Generic repo error",
+		"Generic repo error": {
 			userIsActive:        true,
 			passwordCorrect:     true,
 			repoErr:             genericRepoErr,
@@ -953,8 +924,7 @@ func TestServiceCreateJWTError(t *testing.T) {
 			createRefreshJWTErr: nil,
 			wantErr:             genericRepoErr,
 		},
-		{
-			name:                "Incorrect password",
+		"Incorrect password": {
 			userIsActive:        true,
 			passwordCorrect:     false,
 			repoErr:             nil,
@@ -962,8 +932,7 @@ func TestServiceCreateJWTError(t *testing.T) {
 			createRefreshJWTErr: nil,
 			wantErr:             errutils.ErrInvalidCredentials,
 		},
-		{
-			name:                "CreateAuthJWT fails for access token",
+		"CreateAuthJWT fails for access token": {
 			userIsActive:        true,
 			passwordCorrect:     true,
 			repoErr:             nil,
@@ -971,8 +940,7 @@ func TestServiceCreateJWTError(t *testing.T) {
 			createRefreshJWTErr: nil,
 			wantErr:             createAccessJWTErr,
 		},
-		{
-			name:                "CreateAuthJWT fails for refresh token",
+		"CreateAuthJWT fails for refresh token": {
 			userIsActive:        true,
 			passwordCorrect:     true,
 			repoErr:             nil,
@@ -982,8 +950,8 @@ func TestServiceCreateJWTError(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1106,22 +1074,19 @@ func TestServiceRefreshJWTValidateError(t *testing.T) {
 	).SignedString([]byte(cfg.SecretKey))
 	require.NoError(t, err)
 
-	testcases := []struct {
-		name  string
+	testcases := map[string]struct {
 		token string
 	}{
-		{
-			name:  "Invalid refresh token",
+		"Invalid refresh token": {
 			token: invalidToken,
 		},
-		{
-			name:  "Expired refresh token",
+		"Expired refresh token": {
 			token: expiredToken,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			_, err := svc.RefreshJWT(context.Background(), testcase.token)
@@ -1139,28 +1104,25 @@ func TestServiceRefreshJWTError(t *testing.T) {
 	accessJWT, refreshJWT := testkitinternal.MustCreateUserAuthJWTs(userUUID)
 	createJWTErr := errors.New("CreateAuthJWT failed")
 
-	testcases := []struct {
-		name         string
+	testcases := map[string]struct {
 		validationOk bool
 		createJWTErr error
 		wantErr      error
 	}{
-		{
-			name:         "ValidateAuthJWT fails",
+		"ValidateAuthJWT fails": {
 			validationOk: false,
 			createJWTErr: nil,
 			wantErr:      errutils.ErrInvalidToken,
 		},
-		{
-			name:         "CreateAuthJWT",
+		"CreateAuthJWT": {
 			validationOk: true,
 			createJWTErr: createJWTErr,
 			wantErr:      createJWTErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1289,50 +1251,42 @@ func TestServiceValidateJWT(t *testing.T) {
 	).SignedString([]byte(cfg.SecretKey))
 	require.NoError(t, err)
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		token     string
 		wantValid bool
 	}{
-		{
-			name:      "Valid access token",
+		"Valid access token": {
 			token:     validAccessToken,
 			wantValid: true,
 		},
-		{
-			name:      "Valid refresh token",
+		"Valid refresh token": {
 			token:     validRefreshToken,
 			wantValid: false,
 		},
-		{
-			name:      "Invalid secret key",
+		"Invalid secret key": {
 			token:     tokenWithInvalidSecretKey,
 			wantValid: false,
 		},
-		{
-			name:      "Token of invalid type",
+		"Token of invalid type": {
 			token:     tokenOfInvalidType,
 			wantValid: false,
 		},
-		{
-			name:      "Invalid token",
+		"Invalid token": {
 			token:     "ed0730889507fdb8549acfcd31548ee5",
 			wantValid: false,
 		},
-		{
-			name:      "Expired token",
+		"Expired token": {
 			token:     expiredToken,
 			wantValid: false,
 		},
-		{
-			name:      "Token with invalid claim",
+		"Token with invalid claim": {
 			token:     tokenWithInvalidClaim,
 			wantValid: false,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			valid := svc.ValidateJWT(context.Background(), testcase.token)
@@ -1399,36 +1353,31 @@ func TestServiceCreateAPIKeyError(t *testing.T) {
 	cryptoCreateAPIKeyErr := errors.New("crypto.CreateAPIKey failed")
 	genericRepoErr := errors.New("repo.CreateAPIKey failed")
 
-	testcases := []struct {
-		name                  string
+	testcases := map[string]struct {
 		ctx                   context.Context
 		cryptoCreateAPIKeyErr error
 		repoErr               error
 		wantErr               error
 	}{
-		{
-			name:                  "No user UUID in context",
+		"No user UUID in context": {
 			ctx:                   context.Background(),
 			cryptoCreateAPIKeyErr: nil,
 			repoErr:               nil,
 			wantErr:               nil,
 		},
-		{
-			name:                  "crypto.CreateAPIKey fails",
+		"crypto.CreateAPIKey fails": {
 			ctx:                   context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			cryptoCreateAPIKeyErr: cryptoCreateAPIKeyErr,
 			repoErr:               nil,
 			wantErr:               cryptoCreateAPIKeyErr,
 		},
-		{
-			name:                  "API Key already exists",
+		"API Key already exists": {
 			ctx:                   context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			cryptoCreateAPIKeyErr: nil,
 			repoErr:               errutils.ErrDatabaseUniqueViolation,
 			wantErr:               errutils.ErrAPIKeyAlreadyExists,
 		},
-		{
-			name:                  "Generic repo error",
+		"Generic repo error": {
 			ctx:                   context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			cryptoCreateAPIKeyErr: nil,
 			repoErr:               genericRepoErr,
@@ -1436,8 +1385,8 @@ func TestServiceCreateAPIKeyError(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1565,28 +1514,25 @@ func TestServiceListAPIKeysError(t *testing.T) {
 	userUUID := uuid.NewString()
 	genericRepoErr := errors.New("ListAPIKeysByUserUUID failed")
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		ctx     context.Context
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "No user UUID in context",
+		"No user UUID in context": {
 			ctx:     context.Background(),
 			repoErr: nil,
 			wantErr: nil,
 		},
-		{
-			name:    "Generic repo error",
+		"Generic repo error": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: genericRepoErr,
 			wantErr: genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1658,34 +1604,30 @@ func TestServiceFindAPIKeyError(t *testing.T) {
 	invalidAPIKey := "deadbeef"
 	genericRepoErr := errors.New("ListActiveAPIKeysByPrefix failed")
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		rawKey  string
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "Invalid API key",
+		"Invalid API key": {
 			rawKey:  invalidAPIKey,
 			repoErr: nil,
 			wantErr: nil,
 		},
-		{
-			name:    "Generic repo error",
+		"Generic repo error": {
 			rawKey:  validAPIKey,
 			repoErr: genericRepoErr,
 			wantErr: genericRepoErr,
 		},
-		{
-			name:    "API key not found",
+		"API key not found": {
 			rawKey:  validAPIKey,
 			repoErr: nil,
 			wantErr: errutils.ErrAPIKeyNotFound,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1736,8 +1678,7 @@ func TestServiceUpdateAPIKeySuccess(t *testing.T) {
 	repo := auth.NewRepository(timeProvider)
 	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
-	testcases := []struct {
-		name              string
+	testcases := map[string]struct {
 		startingName      string
 		updatedName       *string
 		startingExpiresAt *time.Time
@@ -1745,8 +1686,7 @@ func TestServiceUpdateAPIKeySuccess(t *testing.T) {
 		wantName          string
 		wantExpiresAt     *time.Time
 	}{
-		{
-			name:              "Update name, update expires at from valid date to valid date",
+		"Update name, update expires at from valid date to valid date": {
 			startingName:      startingName,
 			updatedName:       &updatedName,
 			startingExpiresAt: &nextMonth,
@@ -1757,8 +1697,7 @@ func TestServiceUpdateAPIKeySuccess(t *testing.T) {
 			wantName:      updatedName,
 			wantExpiresAt: &nextYear,
 		},
-		{
-			name:              "Update name only",
+		"Update name only": {
 			startingName:      startingName,
 			updatedName:       &updatedName,
 			startingExpiresAt: &nextMonth,
@@ -1768,8 +1707,7 @@ func TestServiceUpdateAPIKeySuccess(t *testing.T) {
 			wantName:      updatedName,
 			wantExpiresAt: &nextMonth,
 		},
-		{
-			name:              "Update name, update expires at from null to valid date",
+		"Update name, update expires at from null to valid date": {
 			startingName:      startingName,
 			updatedName:       &updatedName,
 			startingExpiresAt: nil,
@@ -1780,8 +1718,7 @@ func TestServiceUpdateAPIKeySuccess(t *testing.T) {
 			wantName:      updatedName,
 			wantExpiresAt: &nextYear,
 		},
-		{
-			name:              "Update name, update expires at from valid date to null",
+		"Update name, update expires at from valid date to null": {
 			startingName:      startingName,
 			updatedName:       &updatedName,
 			startingExpiresAt: &nextMonth,
@@ -1794,8 +1731,8 @@ func TestServiceUpdateAPIKeySuccess(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			user, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
@@ -1836,40 +1773,36 @@ func TestServiceUpdateAPIKeyError(t *testing.T) {
 
 	userUUID := uuid.NewString()
 	var apiKeyID int64 = 314159
-	name := "updatedName"
+	updatedAPIKeyName := "updatedName"
 	expiresAt := jsonutils.Optional[time.Time]{
 		Valid: false,
 	}
 	genericRepoErr := errors.New("UpdateAPIKey failed")
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		ctx     context.Context
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "No user UUID in context",
+		"No user UUID in context": {
 			ctx:     context.Background(),
 			repoErr: nil,
 			wantErr: nil,
 		},
-		{
-			name:    "API key not found",
+		"API key not found": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: errutils.ErrDatabaseNoRowsAffected,
 			wantErr: errutils.ErrAPIKeyNotFound,
 		},
-		{
-			name:    "Generic repo error",
+		"Generic repo error": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: genericRepoErr,
 			wantErr: genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -1883,13 +1816,13 @@ func TestServiceUpdateAPIKeyError(t *testing.T) {
 
 			repo.
 				EXPECT().
-				UpdateAPIKey(gomock.Any(), gomock.Any(), userUUID, apiKeyID, &name, expiresAt).
+				UpdateAPIKey(gomock.Any(), gomock.Any(), userUUID, apiKeyID, &updatedAPIKeyName, expiresAt).
 				Return(nil, testcase.repoErr).
 				MaxTimes(1)
 
 			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
-			_, err := svc.UpdateAPIKey(testcase.ctx, 314159, &name, expiresAt)
+			_, err := svc.UpdateAPIKey(testcase.ctx, 314159, &updatedAPIKeyName, expiresAt)
 			require.Error(t, err)
 
 			if testcase.wantErr != nil {
@@ -1939,34 +1872,30 @@ func TestServiceDeleteAPIKeyError(t *testing.T) {
 	var apiKeyID int64 = 314159
 	genericRepoErr := errors.New("DeleteAPIKey failed")
 
-	testcases := []struct {
-		name    string
+	testcases := map[string]struct {
 		ctx     context.Context
 		repoErr error
 		wantErr error
 	}{
-		{
-			name:    "No user UUID in context",
+		"No user UUID in context": {
 			ctx:     context.Background(),
 			repoErr: nil,
 			wantErr: nil,
 		},
-		{
-			name:    "API key not found",
+		"API key not found": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: errutils.ErrDatabaseNoRowsAffected,
 			wantErr: errutils.ErrAPIKeyNotFound,
 		},
-		{
-			name:    "Generic repo error",
+		"Generic repo error": {
 			ctx:     context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, userUUID),
 			repoErr: genericRepoErr,
 			wantErr: genericRepoErr,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)

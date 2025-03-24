@@ -81,30 +81,26 @@ func TestCodeSpaceNameDataValidSlugs(t *testing.T) {
 func TestCodeSpaceAccessLevelString(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name       string
+	testcases := map[string]struct {
 		level      code.CodeSpaceAccessLevel
 		wantString string
 	}{
-		{
-			name:       "Read-only access level",
+		"Read-only access level": {
 			level:      code.CodeSpaceAccessLevelReadOnly,
 			wantString: api.CodeSpaceAccessLevelReadOnly,
 		},
-		{
-			name:       "Read-write access level",
+		"Read-write access level": {
 			level:      code.CodeSpaceAccessLevelReadWrite,
 			wantString: api.CodeSpaceAccessLevelReadWrite,
 		},
-		{
-			name:       "Unknown access level",
+		"Unknown access level": {
 			level:      42,
 			wantString: "",
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			require.Equal(t, testcase.wantString, testcase.level.String())
@@ -115,30 +111,26 @@ func TestCodeSpaceAccessLevelString(t *testing.T) {
 func TestGetAccessLevelFromString(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name        string
+	testcases := map[string]struct {
 		accessLevel string
 		wantLevel   code.CodeSpaceAccessLevel
 	}{
-		{
-			name:        "Read-only access level",
+		"Read-only access level": {
 			accessLevel: api.CodeSpaceAccessLevelReadOnly,
 			wantLevel:   code.CodeSpaceAccessLevelReadOnly,
 		},
-		{
-			name:        "Read-write access level",
+		"Read-write access level": {
 			accessLevel: api.CodeSpaceAccessLevelReadWrite,
 			wantLevel:   code.CodeSpaceAccessLevelReadWrite,
 		},
-		{
-			name:        "Unknown access level",
+		"Unknown access level": {
 			accessLevel: "DEADBEEF",
 			wantLevel:   0,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			require.Equal(t, testcase.wantLevel, code.GetAccessLevelFromString(testcase.accessLevel))

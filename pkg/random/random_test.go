@@ -41,106 +41,91 @@ func getLowerUpperNumericCharCounts(s string) (int, int, int) {
 func TestGenerateString(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name              string
+	testcases := map[string]struct {
 		n                 int
 		allowLowerAlpha   bool
 		allowUpperAlpha   bool
 		allowNumericAlpha bool
 	}{
-		{
-			name:              "16-letter string, allow all",
+		"16-letter string, allow all": {
 			n:                 16,
 			allowLowerAlpha:   true,
 			allowUpperAlpha:   true,
 			allowNumericAlpha: true,
 		},
-		{
-			name:              "16-letter string, allow only uppercase and numeric",
+		"16-letter string, allow only uppercase and numeric": {
 			n:                 16,
 			allowLowerAlpha:   false,
 			allowUpperAlpha:   true,
 			allowNumericAlpha: true,
 		},
-		{
-			name:              "16-letter string, allow only lowercase and numeric",
+		"16-letter string, allow only lowercase and numeric": {
 			n:                 16,
 			allowLowerAlpha:   true,
 			allowUpperAlpha:   false,
 			allowNumericAlpha: true,
 		},
-		{
-			name:              "16-letter string, allow only alphabets",
+		"16-letter string, allow only alphabets": {
 			n:                 16,
 			allowLowerAlpha:   true,
 			allowUpperAlpha:   true,
 			allowNumericAlpha: false,
 		},
-		{
-			name:              "16-letter string, allow only lowercase",
+		"16-letter string, allow only lowercase": {
 			n:                 16,
 			allowLowerAlpha:   true,
 			allowUpperAlpha:   false,
 			allowNumericAlpha: false,
 		},
-		{
-			name:              "16-letter string, allow only uppercase",
+		"16-letter string, allow only uppercase": {
 			n:                 16,
 			allowLowerAlpha:   false,
 			allowUpperAlpha:   true,
 			allowNumericAlpha: false,
 		},
-		{
-			name:              "16-letter string, allow only numeric",
+		"16-letter string, allow only numeric": {
 			n:                 16,
 			allowLowerAlpha:   false,
 			allowUpperAlpha:   false,
 			allowNumericAlpha: true,
 		},
-		{
-			name:              "256-letter string, allow all",
+		"256-letter string, allow all": {
 			n:                 256,
 			allowLowerAlpha:   true,
 			allowUpperAlpha:   true,
 			allowNumericAlpha: true,
 		},
-		{
-			name:              "256-letter string, allow only uppercase and numeric",
+		"256-letter string, allow only uppercase and numeric": {
 			n:                 256,
 			allowLowerAlpha:   false,
 			allowUpperAlpha:   true,
 			allowNumericAlpha: true,
 		},
-		{
-			name:              "256-letter string, allow only lowercase and numeric",
+		"256-letter string, allow only lowercase and numeric": {
 			n:                 256,
 			allowLowerAlpha:   true,
 			allowUpperAlpha:   false,
 			allowNumericAlpha: true,
 		},
-		{
-			name:              "256-letter string, allow only alphabets",
+		"256-letter string, allow only alphabets": {
 			n:                 256,
 			allowLowerAlpha:   true,
 			allowUpperAlpha:   true,
 			allowNumericAlpha: false,
 		},
-		{
-			name:              "256-letter string, allow only lowercase",
+		"256-letter string, allow only lowercase": {
 			n:                 256,
 			allowLowerAlpha:   true,
 			allowUpperAlpha:   false,
 			allowNumericAlpha: false,
 		},
-		{
-			name:              "256-letter string, allow only uppercase",
+		"256-letter string, allow only uppercase": {
 			n:                 256,
 			allowLowerAlpha:   false,
 			allowUpperAlpha:   true,
 			allowNumericAlpha: false,
 		},
-		{
-			name:              "256-letter string, allow only numeric",
+		"256-letter string, allow only numeric": {
 			n:                 256,
 			allowLowerAlpha:   false,
 			allowUpperAlpha:   false,
@@ -148,8 +133,8 @@ func TestGenerateString(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			s, err := random.GenerateString(

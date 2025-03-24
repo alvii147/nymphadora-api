@@ -12,15 +12,13 @@ import (
 func TestGetAuthorizationHeader(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		header    http.Header
 		authType  string
 		wantToken string
 		wantOk    bool
 	}{
-		{
-			name: "Valid header with valid auth type",
+		"Valid header with valid auth type": {
 			header: map[string][]string{
 				"Authorization": {"Bearer 0xdeadbeef"},
 			},
@@ -28,15 +26,13 @@ func TestGetAuthorizationHeader(t *testing.T) {
 			wantToken: "0xdeadbeef",
 			wantOk:    true,
 		},
-		{
-			name:      "No header",
+		"No header": {
 			header:    map[string][]string{},
 			authType:  "Bearer",
 			wantToken: "0xdeadbeef",
 			wantOk:    false,
 		},
-		{
-			name: "Invalid auth type",
+		"Invalid auth type": {
 			header: map[string][]string{
 				"Authorization": {"Bearer 0xdeadbeef"},
 			},
@@ -44,8 +40,7 @@ func TestGetAuthorizationHeader(t *testing.T) {
 			wantToken: "0xdeadbeef",
 			wantOk:    false,
 		},
-		{
-			name: "Valid header with spaces",
+		"Valid header with spaces": {
 			header: map[string][]string{
 				"Authorization": {"  Bearer   0xdeadbeef    "},
 			},
@@ -55,8 +50,8 @@ func TestGetAuthorizationHeader(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			token, ok := httputils.GetAuthorizationHeader(testcase.header, testcase.authType)
@@ -71,65 +66,54 @@ func TestGetAuthorizationHeader(t *testing.T) {
 func TestIsHTTPSuccess(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name        string
+	testcases := map[string]struct {
 		statusCode  int
 		wantSuccess bool
 	}{
-		{
-			name:        "200 OK is success",
+		"200 OK is success": {
 			statusCode:  http.StatusOK,
 			wantSuccess: true,
 		},
-		{
-			name:        "201 Created is success",
+		"201 Created is success": {
 			statusCode:  http.StatusCreated,
 			wantSuccess: true,
 		},
-		{
-			name:        "204 No content is success",
+		"204 No content is success": {
 			statusCode:  http.StatusNoContent,
 			wantSuccess: true,
 		},
-		{
-			name:        "302 Found is not success",
+		"302 Found is not success": {
 			statusCode:  http.StatusFound,
 			wantSuccess: false,
 		},
-		{
-			name:        "400 Bad request is not success",
+		"400 Bad request is not success": {
 			statusCode:  http.StatusBadRequest,
 			wantSuccess: false,
 		},
-		{
-			name:        "401 Unauthorized is not success",
+		"401 Unauthorized is not success": {
 			statusCode:  http.StatusUnauthorized,
 			wantSuccess: false,
 		},
-		{
-			name:        "403 Forbidden is not success",
+		"403 Forbidden is not success": {
 			statusCode:  http.StatusForbidden,
 			wantSuccess: false,
 		},
-		{
-			name:        "404 Not found is not success",
+		"404 Not found is not success": {
 			statusCode:  http.StatusNotFound,
 			wantSuccess: false,
 		},
-		{
-			name:        "405 Method not allowed is not success",
+		"405 Method not allowed is not success": {
 			statusCode:  http.StatusMethodNotAllowed,
 			wantSuccess: false,
 		},
-		{
-			name:        "500 Internal server error is not success",
+		"500 Internal server error is not success": {
 			statusCode:  http.StatusInternalServerError,
 			wantSuccess: false,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			require.Equal(t, testcase.wantSuccess, httputils.IsHTTPSuccess(testcase.statusCode))
@@ -140,23 +124,19 @@ func TestIsHTTPSuccess(t *testing.T) {
 func TestNewHTTPClient(t *testing.T) {
 	t.Parallel()
 
-	testcases := []struct {
-		name        string
+	testcases := map[string]struct {
 		modifier    func(c *http.Client)
 		wantTimeout time.Duration
 	}{
-		{
-			name:        "No modifier",
+		"No modifier": {
 			modifier:    nil,
 			wantTimeout: httputils.HTTPClientDefaultTimeout,
 		},
-		{
-			name:        "Empty modifier",
+		"Empty modifier": {
 			modifier:    func(c *http.Client) {},
 			wantTimeout: httputils.HTTPClientDefaultTimeout,
 		},
-		{
-			name: "Timeout modifier",
+		"Timeout modifier": {
 			modifier: func(c *http.Client) {
 				c.Timeout = 5 * time.Second
 			},
@@ -164,8 +144,8 @@ func TestNewHTTPClient(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			httpClient := httputils.NewHTTPClient(testcase.modifier)

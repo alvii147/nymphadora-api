@@ -121,22 +121,19 @@ func TestRepositoryActivateUserByUUIDError(t *testing.T) {
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name     string
+	testcases := map[string]struct {
 		userUUID string
 	}{
-		{
-			name:     "No user under given UUID",
+		"No user under given UUID": {
 			userUUID: uuid.NewString(),
 		},
-		{
-			name:     "No inactive user under given UUID",
+		"No inactive user under given UUID": {
 			userUUID: activeUser.UUID,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
@@ -183,22 +180,19 @@ func TestRepositoryGetUserByEmailError(t *testing.T) {
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name  string
+	testcases := map[string]struct {
 		email string
 	}{
-		{
-			name:  "No user",
+		"No user": {
 			email: testkit.GenerateFakeEmail(),
 		},
-		{
-			name:  "No active user",
+		"No active user": {
 			email: inactiveUser.Email,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
@@ -245,22 +239,19 @@ func TestRepositoryGetUserByUUIDError(t *testing.T) {
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name     string
+	testcases := map[string]struct {
 		userUUID string
 	}{
-		{
-			name:     "No user under UUID",
+		"No user under UUID": {
 			userUUID: uuid.NewString(),
 		},
-		{
-			name:     "No active user",
+		"No active user": {
 			userUUID: inactiveUser.UUID,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
@@ -283,29 +274,25 @@ func TestRepositoryUpdateUserSuccess(t *testing.T) {
 	timeProvider.AddDate(0, 0, 1)
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name          string
+	testcases := map[string]struct {
 		firstName     *string
 		lastName      *string
 		wantFirstName string
 		wantLastName  string
 	}{
-		{
-			name:          "Update both first and last names",
+		"Update both first and last names": {
 			firstName:     &updatedFirstName,
 			lastName:      &updatedLastName,
 			wantFirstName: updatedFirstName,
 			wantLastName:  updatedLastName,
 		},
-		{
-			name:          "Update first name",
+		"Update first name": {
 			firstName:     &updatedFirstName,
 			lastName:      nil,
 			wantFirstName: updatedFirstName,
 			wantLastName:  startingLastName,
 		},
-		{
-			name:          "Update last name",
+		"Update last name": {
 			firstName:     nil,
 			lastName:      &updatedLastName,
 			wantFirstName: startingFirstName,
@@ -313,8 +300,8 @@ func TestRepositoryUpdateUserSuccess(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			user, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
@@ -359,34 +346,30 @@ func TestRepositoryUpdateUserError(t *testing.T) {
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name      string
+	testcases := map[string]struct {
 		userUUID  string
 		firstName *string
 		lastName  *string
 	}{
-		{
-			name:      "Update neither first nor last name",
+		"Update neither first nor last name": {
 			userUUID:  activeUser.UUID,
 			firstName: nil,
 			lastName:  nil,
 		},
-		{
-			name:      "Update non-existent user",
+		"Update non-existent user": {
 			userUUID:  uuid.NewString(),
 			firstName: &updatedFirstName,
 			lastName:  &updatedLastName,
 		},
-		{
-			name:      "Update inactive user",
+		"Update inactive user": {
 			userUUID:  inactiveUser.UUID,
 			firstName: &updatedFirstName,
 			lastName:  &updatedLastName,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
@@ -444,28 +427,25 @@ func TestRepositoryCreateAPIKeyError(t *testing.T) {
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name       string
+	testcases := map[string]struct {
 		userUUID   string
 		apiKeyName string
 		wantErr    error
 	}{
-		{
-			name:       "No user",
+		"No user": {
 			userUUID:   uuid.NewString(),
 			apiKeyName: "My Other API Key",
 			wantErr:    errutils.ErrDatabaseForeignKeyConstraintViolation,
 		},
-		{
-			name:       "Duplicate API Key",
+		"Duplicate API Key": {
 			userUUID:   user.UUID,
 			apiKeyName: "My API Key",
 			wantErr:    errutils.ErrDatabaseUniqueViolation,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			apiKey := &auth.APIKey{
@@ -593,22 +573,19 @@ func TestRepositoryListActiveAPIKeysByPrefixEmpty(t *testing.T) {
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name   string
+	testcases := map[string]struct {
 		apiKey *auth.APIKey
 	}{
-		{
-			name:   "Active user with expired API key",
+		"Active user with expired API key": {
 			apiKey: expiredAPIKey,
 		},
-		{
-			name:   "Inactive user with valid API key",
+		"Inactive user with valid API key": {
 			apiKey: validAPIKey,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
@@ -633,8 +610,7 @@ func TestRepositoryUpdateAPIKeySuccess(t *testing.T) {
 	timeProvider.AddDate(0, 0, 1)
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name              string
+	testcases := map[string]struct {
 		startingName      string
 		updatedName       *string
 		startingExpiresAt *time.Time
@@ -642,8 +618,7 @@ func TestRepositoryUpdateAPIKeySuccess(t *testing.T) {
 		wantName          string
 		wantExpiresAt     *time.Time
 	}{
-		{
-			name:              "Update name, update expires at from valid date to valid date",
+		"Update name, update expires at from valid date to valid date": {
 			startingName:      startingName,
 			updatedName:       &updatedName,
 			startingExpiresAt: &nextMonth,
@@ -654,8 +629,7 @@ func TestRepositoryUpdateAPIKeySuccess(t *testing.T) {
 			wantName:      updatedName,
 			wantExpiresAt: &nextYear,
 		},
-		{
-			name:              "Update name only",
+		"Update name only": {
 			startingName:      startingName,
 			updatedName:       &updatedName,
 			startingExpiresAt: &nextMonth,
@@ -665,8 +639,7 @@ func TestRepositoryUpdateAPIKeySuccess(t *testing.T) {
 			wantName:      updatedName,
 			wantExpiresAt: &nextMonth,
 		},
-		{
-			name:              "Update name, update expires at from null to valid date",
+		"Update name, update expires at from null to valid date": {
 			startingName:      startingName,
 			updatedName:       &updatedName,
 			startingExpiresAt: nil,
@@ -677,8 +650,7 @@ func TestRepositoryUpdateAPIKeySuccess(t *testing.T) {
 			wantName:      updatedName,
 			wantExpiresAt: &nextYear,
 		},
-		{
-			name:              "Update name, update expires at from valid date to null",
+		"Update name, update expires at from valid date to null": {
 			startingName:      startingName,
 			updatedName:       &updatedName,
 			startingExpiresAt: &nextMonth,
@@ -691,8 +663,8 @@ func TestRepositoryUpdateAPIKeySuccess(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			user, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
@@ -765,15 +737,13 @@ func TestRepositoryUpdateAPIKeyError(t *testing.T) {
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name             string
+	testcases := map[string]struct {
 		apiKeyID         int64
 		userUUID         string
 		updatedName      *string
 		updatedExpiresAt jsonutils.Optional[time.Time]
 	}{
-		{
-			name:        "Update neither name nor expires at",
+		"Update neither name nor expires at": {
 			apiKeyID:    activeUserAPIKey.ID,
 			userUUID:    activeUser.UUID,
 			updatedName: nil,
@@ -781,8 +751,7 @@ func TestRepositoryUpdateAPIKeyError(t *testing.T) {
 				Valid: false,
 			},
 		},
-		{
-			name:        "Update non-existent API key",
+		"Update non-existent API key": {
 			apiKeyID:    314159,
 			userUUID:    activeUser.UUID,
 			updatedName: &updatedName,
@@ -791,8 +760,7 @@ func TestRepositoryUpdateAPIKeyError(t *testing.T) {
 				Value: &nextYear,
 			},
 		},
-		{
-			name:        "Update API key for inactive user",
+		"Update API key for inactive user": {
 			apiKeyID:    inactiveUserAPIKey.ID,
 			userUUID:    inactiveUser.UUID,
 			updatedName: &updatedName,
@@ -803,8 +771,8 @@ func TestRepositoryUpdateAPIKeyError(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
@@ -866,25 +834,22 @@ func TestRepositoryDeleteAPIKeyError(t *testing.T) {
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
-	testcases := []struct {
-		name     string
+	testcases := map[string]struct {
 		apiKeyID int64
 		userUUID string
 	}{
-		{
-			name:     "Active user with no API keys",
+		"Active user with no API keys": {
 			apiKeyID: 314159,
 			userUUID: activeUser.UUID,
 		},
-		{
-			name:     "Inactive user with valid API key",
+		"Inactive user with valid API key": {
 			apiKeyID: inactiveUserAPIKey.ID,
 			userUUID: inactiveUser.UUID,
 		},
 	}
 
-	for _, testcase := range testcases {
-		t.Run(testcase.name, func(t *testing.T) {
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
