@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const GoCode = `
-package main
+const CCode = `
+#include <stdio.h>
 
-import "fmt"
+int main() {
+    printf("Hello, world!");
 
-func main() {
-	fmt.Print("Hello, world!")
+    return 0;
 }
 `
 
@@ -29,25 +29,28 @@ func TestPistonClientExecute(t *testing.T) {
 	client := piston.NewClient(nil, httputils.NewHTTPClient(nil))
 
 	testcases := []struct {
-		name     string
-		fileName string
-		language string
-		version  string
-		code     string
+		name               string
+		fileName           string
+		language           string
+		version            string
+		code               string
+		wantCompileResults bool
 	}{
 		{
-			name:     "Go",
-			fileName: "main.go",
-			language: api.PistonLanguageGo,
-			version:  api.PistonVersionGo,
-			code:     GoCode,
+			name:               "Execute C code, expect compilation results",
+			fileName:           "main.c",
+			language:           api.PistonLanguageC,
+			version:            api.PistonVersionC,
+			code:               CCode,
+			wantCompileResults: true,
 		},
 		{
-			name:     "Python",
-			fileName: "main.py",
-			language: api.PistonLanguagePython,
-			version:  api.PistonVersionPython,
-			code:     PythonCode,
+			name:               "Execute Python code, expect only runtime results",
+			fileName:           "main.py",
+			language:           api.PistonLanguagePython,
+			version:            api.PistonVersionPython,
+			code:               PythonCode,
+			wantCompileResults: false,
 		},
 	}
 
@@ -74,17 +77,26 @@ func TestPistonClientExecute(t *testing.T) {
 			require.Equal(t, testcase.language, response.Language)
 			require.Equal(t, testcase.version, response.Version)
 
-			require.Equal(t, "", response.Compile.Stdout)
-			require.Equal(t, "", response.Compile.Stderr)
-			require.Equal(t, "", response.Compile.Output)
-			require.Nil(t, response.Compile.Code)
-			require.Nil(t, response.Compile.Signal)
-
 			require.Equal(t, "Hello, world!", response.Run.Stdout)
-			require.Equal(t, "", response.Run.Stderr)
+			require.Empty(t, response.Run.Stderr)
 			require.Equal(t, "Hello, world!", response.Run.Output)
+			require.NotNil(t, response.Run.Code)
 			require.Equal(t, 0, *response.Run.Code)
 			require.Nil(t, response.Run.Signal)
+
+			if !testcase.wantCompileResults {
+				require.Nil(t, response.Compile)
+
+				return
+			}
+
+			require.NotNil(t, response.Compile)
+			require.Empty(t, response.Compile.Stdout)
+			require.Empty(t, response.Compile.Stderr)
+			require.Empty(t, response.Compile.Output)
+			require.NotNil(t, response.Compile.Code)
+			require.Equal(t, 0, *response.Compile.Code)
+			require.Nil(t, response.Compile.Signal)
 		})
 	}
 }

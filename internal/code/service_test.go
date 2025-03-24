@@ -406,7 +406,7 @@ func TestServiceListCodeSpacesError(t *testing.T) {
 			repo.
 				EXPECT().
 				ListCodeSpaces(gomock.Any(), gomock.Any(), userUUID).
-				Return(nil, testcase.repoErr).
+				Return(nil, nil, testcase.repoErr).
 				MaxTimes(1)
 
 			svc := code.NewService(
@@ -1489,16 +1489,10 @@ func TestServiceRunCodeSpaceError(t *testing.T) {
 			repo := codemocks.NewMockRepository(ctrl)
 			authRepo := authmocks.NewMockRepository(ctrl)
 
-			pistonResponse := &api.PistonExecuteResponse{
-				Language: testcase.language,
-				Version:  "42.0",
-				Run:      api.PistonResults{},
-			}
-
 			pistonClient.
 				EXPECT().
 				Execute(gomock.Any()).
-				Return(pistonResponse, testcase.pistonErr).
+				Return(nil, testcase.pistonErr).
 				MaxTimes(1)
 
 			codeSpace := &code.CodeSpace{
@@ -1649,7 +1643,7 @@ func TestServiceCodeSpace(t *testing.T) {
 	require.Equal(t, user.UUID, claims.Subject)
 	require.Equal(t, invitee.Email, claims.InviteeEmail)
 	require.Equal(t, codeSpace.ID, claims.CodeSpaceID)
-	require.Equal(t, code.CodeSpaceAccessLevelReadOnly, claims.AccessLevel)
+	require.EqualValues(t, code.CodeSpaceAccessLevelReadOnly, claims.AccessLevel)
 	require.Equal(t, string(cryptocore.JWTTypeCodeSpaceInvitation), claims.TokenType)
 	require.WithinDuration(t, timeProvider.Now(), time.Time(claims.IssuedAt), testkit.TimeToleranceExact)
 	require.WithinDuration(
