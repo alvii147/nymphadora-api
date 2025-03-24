@@ -128,7 +128,7 @@ func (ctrl *Controller) HandleListCodeSpaces(w *httputils.ResponseWriter, r *htt
 func (ctrl *Controller) HandleGetCodeSpace(w *httputils.ResponseWriter, r *http.Request) {
 	codeSpaceName := GetCodeSpaceNameParam(r)
 
-	codeSpace, codeSpaceAccess, err := ctrl.codeService.GetCodespace(r.Context(), codeSpaceName)
+	codeSpace, codeSpaceAccess, err := ctrl.codeService.GetCodeSpace(r.Context(), codeSpaceName)
 	if err != nil {
 		ctrl.logger.LogError(errutils.FormatError(err))
 		switch {
@@ -352,7 +352,7 @@ func (ctrl *Controller) HandleRunCodeSpace(w *httputils.ResponseWriter, r *http.
 func (ctrl *Controller) HandleListCodespaceUsers(w *httputils.ResponseWriter, r *http.Request) {
 	codeSpaceName := GetCodeSpaceNameParam(r)
 
-	users, codeSpaceAccesses, err := ctrl.codeService.ListCodespaceUsers(r.Context(), codeSpaceName)
+	users, codeSpaceAccesses, err := ctrl.codeService.ListCodeSpaceUsers(r.Context(), codeSpaceName)
 	if err != nil {
 		ctrl.logger.LogError(errutils.FormatError(err))
 		w.WriteJSON(

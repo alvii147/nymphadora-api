@@ -236,7 +236,7 @@ func TestServiceCreateCodeSpaceError(t *testing.T) {
 	}
 }
 
-func TestServiceListCodespacesSuccess(t *testing.T) {
+func TestServiceListCodeSpacesSuccess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -361,7 +361,7 @@ func TestServiceListCodespacesSuccess(t *testing.T) {
 	}
 }
 
-func TestServiceListCodespacesError(t *testing.T) {
+func TestServiceListCodeSpacesError(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -431,7 +431,7 @@ func TestServiceListCodespacesError(t *testing.T) {
 	}
 }
 
-func TestServiceGetCodespace(t *testing.T) {
+func TestServiceGetCodeSpace(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -558,7 +558,7 @@ func TestServiceGetCodespace(t *testing.T) {
 			)
 
 			ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, testcase.userUUID)
-			codeSpace, codeSpaceAccess, err := svc.GetCodespace(ctx, testcase.codeSpace.Name)
+			codeSpace, codeSpaceAccess, err := svc.GetCodeSpace(ctx, testcase.codeSpace.Name)
 
 			if testcase.wantErr != nil {
 				require.Error(t, err)
@@ -584,7 +584,7 @@ func TestServiceGetCodespace(t *testing.T) {
 	}
 }
 
-func TestServiceGetCodespaceError(t *testing.T) {
+func TestServiceGetCodeSpaceError(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -645,7 +645,7 @@ func TestServiceGetCodespaceError(t *testing.T) {
 				authRepo,
 			)
 
-			_, _, err := svc.GetCodespace(testcase.ctx, codeSpaceName)
+			_, _, err := svc.GetCodeSpace(testcase.ctx, codeSpaceName)
 			require.Error(t, err)
 
 			if testcase.wantErr != nil {
@@ -655,7 +655,7 @@ func TestServiceGetCodespaceError(t *testing.T) {
 	}
 }
 
-func TestServiceUpdateCodespaceAuthorSuccess(t *testing.T) {
+func TestServiceUpdateCodeSpaceAuthorSuccess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -704,10 +704,10 @@ func TestServiceUpdateCodespaceAuthorSuccess(t *testing.T) {
 	require.Equal(t, updatedContents, updatedCodeSpace.Contents)
 	require.WithinDuration(t, now, updatedCodeSpace.CreatedAt, testkit.TimeToleranceTentative)
 	require.WithinDuration(t, tomorrow, updatedCodeSpace.UpdatedAt, testkit.TimeToleranceTentative)
-	require.Equal(t, code.CodeSpaceAccessLevelReadWrite, codeSpaceAccess)
+	require.Equal(t, code.CodeSpaceAccessLevelReadWrite, codeSpaceAccess.Level)
 }
 
-func TestServiceUpdateCodespaceEditorSuccess(t *testing.T) {
+func TestServiceUpdateCodeSpaceEditorSuccess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -766,10 +766,10 @@ func TestServiceUpdateCodespaceEditorSuccess(t *testing.T) {
 	require.Equal(t, updatedContents, updatedCodeSpace.Contents)
 	require.WithinDuration(t, now, updatedCodeSpace.CreatedAt, testkit.TimeToleranceTentative)
 	require.WithinDuration(t, tomorrow, updatedCodeSpace.UpdatedAt, testkit.TimeToleranceTentative)
-	require.Equal(t, code.CodeSpaceAccessLevelReadWrite, codeSpaceAccess)
+	require.Equal(t, code.CodeSpaceAccessLevelReadWrite, codeSpaceAccess.Level)
 }
 
-func TestServiceUpdateCodespaceFails(t *testing.T) {
+func TestServiceUpdateCodeSpaceFails(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -849,7 +849,7 @@ func TestServiceUpdateCodespaceFails(t *testing.T) {
 	}
 }
 
-func TestServiceUpdateCodespaceError(t *testing.T) {
+func TestServiceUpdateCodeSpaceError(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -958,7 +958,7 @@ func TestServiceUpdateCodespaceError(t *testing.T) {
 	}
 }
 
-func TestServiceDeleteCodespaceAuthorSuccess(t *testing.T) {
+func TestServiceDeleteCodeSpaceAuthorSuccess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -1000,7 +1000,7 @@ func TestServiceDeleteCodespaceAuthorSuccess(t *testing.T) {
 	require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsReturned)
 }
 
-func TestServiceDeleteCodespaceEditorSuccess(t *testing.T) {
+func TestServiceDeleteCodeSpaceEditorSuccess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -1052,7 +1052,7 @@ func TestServiceDeleteCodespaceEditorSuccess(t *testing.T) {
 	require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsReturned)
 }
 
-func TestServiceDeleteCodespaceFails(t *testing.T) {
+func TestServiceDeleteCodeSpaceFails(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -1127,7 +1127,7 @@ func TestServiceDeleteCodespaceFails(t *testing.T) {
 	}
 }
 
-func TestServiceDeleteCodespaceError(t *testing.T) {
+func TestServiceDeleteCodeSpaceError(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -1235,7 +1235,7 @@ func TestServiceDeleteCodespaceError(t *testing.T) {
 	}
 }
 
-func TestServiceRunCodespaceSuccess(t *testing.T) {
+func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -1415,7 +1415,7 @@ func TestServiceRunCodespaceSuccess(t *testing.T) {
 	}
 }
 
-func TestServiceRunCodespaceError(t *testing.T) {
+func TestServiceRunCodeSpaceError(t *testing.T) {
 	t.Parallel()
 
 	cfg := testkitinternal.MustCreateConfig()
@@ -1606,7 +1606,7 @@ func TestServiceCodeSpace(t *testing.T) {
 	_, err = svc.RunCodeSpace(ctx, codeSpace.Name)
 	require.NoError(t, err)
 
-	codeSpaceUsers, codeSpaceAccesses, err := svc.ListCodespaceUsers(ctx, codeSpace.Name)
+	codeSpaceUsers, codeSpaceAccesses, err := svc.ListCodeSpaceUsers(ctx, codeSpace.Name)
 	require.NoError(t, err)
 
 	require.Len(t, codeSpaceUsers, 1)

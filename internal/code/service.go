@@ -33,7 +33,7 @@ type Service interface {
 	ListCodeSpaces(
 		ctx context.Context,
 	) ([]*CodeSpace, []*CodeSpaceAccess, error)
-	GetCodespace(
+	GetCodeSpace(
 		ctx context.Context,
 		name string,
 	) (*CodeSpace, *CodeSpaceAccess, error)
@@ -50,7 +50,7 @@ type Service interface {
 		ctx context.Context,
 		name string,
 	) (*api.PistonExecuteResponse, error)
-	ListCodespaceUsers(
+	ListCodeSpaceUsers(
 		ctx context.Context,
 		name string,
 	) ([]*auth.User, []*CodeSpaceAccess, error)
@@ -237,8 +237,8 @@ func (svc *service) ListCodeSpaces(
 	return codeSpaces, codeSpaceAccesses, nil
 }
 
-// GetCodespace gets a given code space for the currently authenticated user.
-func (svc *service) GetCodespace(
+// GetCodeSpace gets a given code space for the currently authenticated user.
+func (svc *service) GetCodeSpace(
 	ctx context.Context,
 	name string,
 ) (*CodeSpace, *CodeSpaceAccess, error) {
@@ -418,8 +418,8 @@ func (svc *service) RunCodeSpace(
 	return resp, nil
 }
 
-// ListCodespaceUsers lists users with access to a code space.
-func (svc *service) ListCodespaceUsers(
+// ListCodeSpaceUsers lists users with access to a code space.
+func (svc *service) ListCodeSpaceUsers(
 	ctx context.Context,
 	name string,
 ) ([]*auth.User, []*CodeSpaceAccess, error) {
