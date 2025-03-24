@@ -54,7 +54,7 @@ jobs:
 
     - name: Install migration tool
       run: |
-        curl -L https://github.com/golang-migrate/migrate/releases/latest/download/migrate.linux-amd64.tar.gz | tar xvz
+        go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
     - name: Run unit tests
       run: |
