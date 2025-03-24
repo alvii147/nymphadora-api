@@ -20,10 +20,12 @@ jobs:
         go-version: '1.24'
 
     - name: Install linter
-      run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin
 
     - name: Run lint check
-      run: make lint
+      run: |
+        make lint
 
   tests:
     runs-on: ubuntu-latest
@@ -51,10 +53,13 @@ jobs:
         go-version: '1.24'
 
     - name: Install migration tool
-      run: curl -L https://github.com/golang-migrate/migrate/releases/download/latest/migrate.linux-amd64.tar.gz | tar xvz
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases/download/latest/migrate.linux-amd64.tar.gz | tar xvz
 
     - name: Run unit tests
-      run: make test
+      run: |
+        make test
 
     - name: Show coverage report
-      run: make cover
+      run: |
+        make cover
