@@ -32,6 +32,118 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func TestServiceSendUserActivationMailSuccess(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	email := testkit.GenerateFakeEmail()
+
+	ctrl := gomock.NewController(t)
+	timeProvider := timekeeper.NewFrozenProvider()
+	mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
+	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	_, _, logger := testkit.CreateInMemLogger()
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
+	tmplManager := templatesmanager.NewManager()
+	repo := authmocks.NewMockRepository(ctrl)
+	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+
+	activationURL := "http://localhost:3000/signup/activate/4ct1v4t10njwt"
+	err := svc.SendUserActivationMail(
+		context.Background(),
+		email,
+		templatesmanager.ActivationEmailTemplateData{
+			RecipientEmail: email,
+			ActivationURL:  activationURL,
+		},
+	)
+	require.NoError(t, err)
+	require.Len(t, mailClient.Logs, 1)
+
+	lastMail := mailClient.Logs[len(mailClient.Logs)-1]
+	require.Equal(t, []string{email}, lastMail.To)
+	require.Equal(t, "Welcome to Nymphadora!", lastMail.Subject)
+	require.WithinDuration(t, timeProvider.Now(), lastMail.SentAt, testkit.TimeToleranceExact)
+
+	mailMessage := string(lastMail.Message)
+	require.Contains(t, mailMessage, "Welcome to Nymphadora!")
+	require.Contains(t, mailMessage, "Nymphadora - Activate Your Account")
+	require.Contains(t, mailMessage, activationURL)
+}
+
+func TestServiceSendUserActivationMailError(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	activationURL := "http://localhost:3000/signup/activate/4ct1v4t10njwt"
+	email := testkit.GenerateFakeEmail()
+	tmplLoadErr := errors.New("Load failed")
+	mailSendErr := errors.New("Send failed")
+
+	testcases := map[string]struct {
+		tmplLoadErr error
+		mailSendErr error
+		wantErr     error
+	}{
+		"template Load fails": {
+			tmplLoadErr: tmplLoadErr,
+			mailSendErr: nil,
+			wantErr:     tmplLoadErr,
+		},
+		"mail Send fails": {
+			tmplLoadErr: nil,
+			mailSendErr: mailSendErr,
+			wantErr:     mailSendErr,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			_, _, logger := testkit.CreateInMemLogger()
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			repo := authmocks.NewMockRepository(ctrl)
+			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+
+			tmplManager.
+				EXPECT().
+				Load("activation").
+				Return(texttemplate.New("text"), htmltemplate.New("html"), testcase.tmplLoadErr).
+				MaxTimes(1)
+
+			mailClient.
+				EXPECT().
+				Send(
+					[]string{email},
+					"Welcome to Nymphadora!",
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+				).
+				Return(testcase.mailSendErr).
+				MaxTimes(1)
+
+			err := svc.SendUserActivationMail(
+				context.Background(),
+				email,
+				templatesmanager.ActivationEmailTemplateData{
+					RecipientEmail: email,
+					ActivationURL:  activationURL,
+				},
+			)
+			require.ErrorIs(t, err, testcase.wantErr)
+		})
+	}
+}
+
 func TestServiceCreateUserSuccess(t *testing.T) {
 	t.Parallel()
 
@@ -313,118 +425,6 @@ func TestServiceCreateUserEmailSendFails(t *testing.T) {
 	require.Contains(t, logMsg, "Send failed")
 }
 
-func TestServiceSendUserActivationMailSuccess(t *testing.T) {
-	t.Parallel()
-
-	cfg := testkitinternal.MustCreateConfig()
-
-	email := testkit.GenerateFakeEmail()
-
-	ctrl := gomock.NewController(t)
-	timeProvider := timekeeper.NewFrozenProvider()
-	mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	_, _, logger := testkit.CreateInMemLogger()
-	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
-	tmplManager := templatesmanager.NewManager()
-	repo := authmocks.NewMockRepository(ctrl)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
-
-	activationURL := "http://localhost:3000/signup/activate/4ct1v4t10njwt"
-	err := svc.SendUserActivationMail(
-		context.Background(),
-		email,
-		templatesmanager.ActivationEmailTemplateData{
-			RecipientEmail: email,
-			ActivationURL:  activationURL,
-		},
-	)
-	require.NoError(t, err)
-	require.Len(t, mailClient.Logs, 1)
-
-	lastMail := mailClient.Logs[len(mailClient.Logs)-1]
-	require.Equal(t, []string{email}, lastMail.To)
-	require.Equal(t, "Welcome to Nymphadora!", lastMail.Subject)
-	require.WithinDuration(t, timeProvider.Now(), lastMail.SentAt, testkit.TimeToleranceExact)
-
-	mailMessage := string(lastMail.Message)
-	require.Contains(t, mailMessage, "Welcome to Nymphadora!")
-	require.Contains(t, mailMessage, "Nymphadora - Activate Your Account")
-	require.Contains(t, mailMessage, activationURL)
-}
-
-func TestServiceSendUserActivationMailError(t *testing.T) {
-	t.Parallel()
-
-	cfg := testkitinternal.MustCreateConfig()
-
-	activationURL := "http://localhost:3000/signup/activate/4ct1v4t10njwt"
-	email := testkit.GenerateFakeEmail()
-	tmplLoadErr := errors.New("Load failed")
-	mailSendErr := errors.New("Send failed")
-
-	testcases := map[string]struct {
-		tmplLoadErr error
-		mailSendErr error
-		wantErr     error
-	}{
-		"template Load fails": {
-			tmplLoadErr: tmplLoadErr,
-			mailSendErr: nil,
-			wantErr:     tmplLoadErr,
-		},
-		"mail Send fails": {
-			tmplLoadErr: nil,
-			mailSendErr: mailSendErr,
-			wantErr:     mailSendErr,
-		},
-	}
-
-	for name, testcase := range testcases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			ctrl := gomock.NewController(t)
-			timeProvider := timekeeper.NewFrozenProvider()
-			mailClient := mailclientmocks.NewMockClient(ctrl)
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			_, _, logger := testkit.CreateInMemLogger()
-			crypto := cryptocoremocks.NewMockCrypto(ctrl)
-			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
-			repo := authmocks.NewMockRepository(ctrl)
-			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
-
-			tmplManager.
-				EXPECT().
-				Load("activation").
-				Return(texttemplate.New("text"), htmltemplate.New("html"), testcase.tmplLoadErr).
-				MaxTimes(1)
-
-			mailClient.
-				EXPECT().
-				Send(
-					[]string{email},
-					"Welcome to Nymphadora!",
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-				).
-				Return(testcase.mailSendErr).
-				MaxTimes(1)
-
-			err := svc.SendUserActivationMail(
-				context.Background(),
-				email,
-				templatesmanager.ActivationEmailTemplateData{
-					RecipientEmail: email,
-					ActivationURL:  activationURL,
-				},
-			)
-			require.ErrorIs(t, err, testcase.wantErr)
-		})
-	}
-}
-
 func TestServiceActivateUserSuccess(t *testing.T) {
 	t.Parallel()
 
@@ -573,7 +573,7 @@ func TestServiceGetAuthenticatedUserSuccess(t *testing.T) {
 	timeProvider := timekeeper.NewFrozenProvider()
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
-	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
@@ -668,7 +668,7 @@ func TestServiceUpdateAuthenticatedUserSuccess(t *testing.T) {
 	timeProvider.AddDate(0, 0, 1)
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
-	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)

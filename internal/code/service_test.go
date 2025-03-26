@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	htmltemplate "html/template"
 	"regexp"
 	"testing"
+	texttemplate "text/template"
 	"time"
 
 	"github.com/alvii147/nymphadora-api/internal/auth"
@@ -44,7 +46,7 @@ func TestServiceGenerateCodeSpaceName(t *testing.T) {
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
-	repo := code.NewRepository(timeProvider)
+	repo := codemocks.NewMockRepository(ctrl)
 	authRepo := authmocks.NewMockRepository(ctrl)
 
 	svc := code.NewService(
@@ -80,9 +82,9 @@ func TestServiceCreateCodeSpaceSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
-	tmplManager := templatesmanager.NewManager()
+	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
 	repo := code.NewRepository(timeProvider)
 	authRepo := auth.NewRepository(timeProvider)
@@ -169,10 +171,10 @@ func TestServiceCreateCodeSpaceError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := codemocks.NewMockRepository(ctrl)
 			authRepo := authmocks.NewMockRepository(ctrl)
 
@@ -302,10 +304,10 @@ func TestServiceListCodeSpacesSuccess(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
-			tmplManager := templatesmanager.NewManager()
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := code.NewRepository(timeProvider)
 			authRepo := auth.NewRepository(timeProvider)
 
@@ -383,10 +385,10 @@ func TestServiceListCodeSpacesError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := codemocks.NewMockRepository(ctrl)
 			authRepo := authmocks.NewMockRepository(ctrl)
 
@@ -516,10 +518,10 @@ func TestServiceGetCodeSpace(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
-			tmplManager := templatesmanager.NewManager()
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := code.NewRepository(timeProvider)
 			authRepo := auth.NewRepository(timeProvider)
 
@@ -595,10 +597,10 @@ func TestServiceGetCodeSpaceError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := codemocks.NewMockRepository(ctrl)
 			authRepo := authmocks.NewMockRepository(ctrl)
 
@@ -643,10 +645,10 @@ func TestServiceUpdateCodeSpaceAuthorSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
-	tmplManager := templatesmanager.NewManager()
-	pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+	pistonClient := pistonmocks.NewMockClient(ctrl)
 	repo := code.NewRepository(timeProvider)
 	authRepo := auth.NewRepository(timeProvider)
 
@@ -705,10 +707,10 @@ func TestServiceUpdateCodeSpaceEditorSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
-	tmplManager := templatesmanager.NewManager()
-	pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+	pistonClient := pistonmocks.NewMockClient(ctrl)
 	repo := code.NewRepository(timeProvider)
 	authRepo := auth.NewRepository(timeProvider)
 
@@ -789,10 +791,10 @@ func TestServiceUpdateCodeSpaceFails(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
-			tmplManager := templatesmanager.NewManager()
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := code.NewRepository(timeProvider)
 			authRepo := auth.NewRepository(timeProvider)
 
@@ -884,10 +886,10 @@ func TestServiceUpdateCodeSpaceError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := codemocks.NewMockRepository(ctrl)
 			authRepo := authmocks.NewMockRepository(ctrl)
 
@@ -938,10 +940,10 @@ func TestServiceDeleteCodeSpaceAuthorSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
-	tmplManager := templatesmanager.NewManager()
-	pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+	pistonClient := pistonmocks.NewMockClient(ctrl)
 	repo := code.NewRepository(timeProvider)
 	authRepo := auth.NewRepository(timeProvider)
 
@@ -990,10 +992,10 @@ func TestServiceDeleteCodeSpaceEditorSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
-	tmplManager := templatesmanager.NewManager()
-	pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+	pistonClient := pistonmocks.NewMockClient(ctrl)
 	repo := code.NewRepository(timeProvider)
 	authRepo := auth.NewRepository(timeProvider)
 
@@ -1064,10 +1066,10 @@ func TestServiceDeleteCodeSpaceFails(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
-			tmplManager := templatesmanager.NewManager()
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := code.NewRepository(timeProvider)
 			authRepo := auth.NewRepository(timeProvider)
 
@@ -1153,10 +1155,10 @@ func TestServiceDeleteCodeSpaceError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
-			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
+			pistonClient := pistonmocks.NewMockClient(ctrl)
 			repo := codemocks.NewMockRepository(ctrl)
 			authRepo := authmocks.NewMockRepository(ctrl)
 
@@ -1335,9 +1337,9 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
-			tmplManager := templatesmanager.NewManager()
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			pistonClient := piston.NewClient(nil, httputils.NewHTTPClient(nil))
 			repo := code.NewRepository(timeProvider)
 			authRepo := auth.NewRepository(timeProvider)
@@ -1426,7 +1428,7 @@ func TestServiceRunCodeSpaceError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			dbPool := testkitinternal.RequireCreateDatabasePool(t)
-			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			pistonClient := pistonmocks.NewMockClient(ctrl)
@@ -1472,6 +1474,633 @@ func TestServiceRunCodeSpaceError(t *testing.T) {
 			)
 
 			_, err := svc.RunCodeSpace(testcase.ctx, codeSpace.Name)
+			require.Error(t, err)
+
+			if testcase.wantErr != nil {
+				require.ErrorIs(t, err, testcase.wantErr)
+			}
+		})
+	}
+}
+
+func TestServiceListCodeSpaceUsers(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	author, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, "python")
+
+	editor, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		editor.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadWrite,
+	)
+
+	viewer, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		viewer.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadOnly,
+	)
+
+	thirdPartyUser, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+
+	testcases := map[string]struct {
+		userUUID string
+		wantErr  error
+	}{
+		"Author can list codespace users": {
+			userUUID: author.UUID,
+			wantErr:  nil,
+		},
+		"Editor can list codespace users": {
+			userUUID: editor.UUID,
+			wantErr:  nil,
+		},
+		"Viewer gets access denied": {
+			userUUID: viewer.UUID,
+			wantErr:  errutils.ErrCodeSpaceAccessDenied,
+		},
+		"Third party user gets code space not found": {
+			userUUID: thirdPartyUser.UUID,
+			wantErr:  errutils.ErrCodeSpaceNotFound,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
+			repo := code.NewRepository(timeProvider)
+			authRepo := auth.NewRepository(timeProvider)
+
+			svc := code.NewService(
+				cfg,
+				timeProvider,
+				dbPool,
+				crypto,
+				mailClient,
+				tmplManager,
+				pistonClient,
+				repo,
+				authRepo,
+			)
+
+			ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, testcase.userUUID)
+			users, codeSpaceAccesses, err := svc.ListCodeSpaceUsers(ctx, codeSpace.Name)
+
+			if testcase.wantErr != nil {
+				require.Error(t, err)
+				require.ErrorIs(t, err, testcase.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Len(t, users, 3)
+			require.Len(t, codeSpaceAccesses, 3)
+
+			userAccessLevelMap := map[string]code.CodeSpaceAccessLevel{
+				author.UUID: code.CodeSpaceAccessLevelReadWrite,
+				editor.UUID: code.CodeSpaceAccessLevelReadWrite,
+				viewer.UUID: code.CodeSpaceAccessLevelReadOnly,
+			}
+
+			for i, codeSpaceAccess := range codeSpaceAccesses {
+				wantAccessLevel, ok := userAccessLevelMap[codeSpaceAccess.UserUUID]
+				require.True(t, ok)
+
+				delete(userAccessLevelMap, codeSpaceAccess.UserUUID)
+
+				require.Equal(t, users[i].UUID, codeSpaceAccess.UserUUID)
+				require.Equal(t, codeSpace.ID, codeSpaceAccess.CodeSpaceID)
+				require.Equal(t, wantAccessLevel, codeSpaceAccess.Level)
+			}
+		})
+	}
+}
+
+func TestServiceListCodeSpaceUsersError(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	authorUUID := uuid.NewString()
+
+	genericRepoGetErr := errors.New("GetCodeSpaceWithAccessByName failed")
+	genericRepoListErr := errors.New("ListUsersWithCodeSpaceAccess failed")
+
+	testcases := map[string]struct {
+		ctx         context.Context
+		repoGetErr  error
+		repoListErr error
+		wantErr     error
+	}{
+		"No user UUID in context": {
+			ctx:         context.Background(),
+			repoGetErr:  nil,
+			repoListErr: nil,
+			wantErr:     nil,
+		},
+		"GetCodeSpaceWithAccessByName fails, no rows returned": {
+			ctx:         context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			repoGetErr:  errutils.ErrDatabaseNoRowsReturned,
+			repoListErr: nil,
+			wantErr:     errutils.ErrCodeSpaceNotFound,
+		},
+		"GetCodeSpaceWithAccessByName fails, generic error": {
+			ctx:         context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			repoGetErr:  genericRepoGetErr,
+			repoListErr: nil,
+			wantErr:     genericRepoGetErr,
+		},
+		"ListUsersWithCodeSpaceAccess fails": {
+			ctx:         context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			repoGetErr:  nil,
+			repoListErr: genericRepoListErr,
+			wantErr:     genericRepoListErr,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
+			repo := codemocks.NewMockRepository(ctrl)
+			authRepo := authmocks.NewMockRepository(ctrl)
+
+			codeSpace := &code.CodeSpace{
+				ID:         42,
+				AuthorUUID: &authorUUID,
+				Name:       "habitable-slaking-volatile-granger-mov",
+				Language:   "python",
+				Contents:   "print('hello')",
+			}
+			codeSpaceAccess := &code.CodeSpaceAccess{
+				ID:          314,
+				UserUUID:    authorUUID,
+				CodeSpaceID: codeSpace.ID,
+				Level:       code.CodeSpaceAccessLevelReadWrite,
+			}
+
+			repo.
+				EXPECT().
+				GetCodeSpaceWithAccessByName(gomock.Any(), gomock.Any(), authorUUID, codeSpace.Name).
+				Return(codeSpace, codeSpaceAccess, testcase.repoGetErr).
+				MaxTimes(1)
+
+			repo.
+				EXPECT().
+				ListUsersWithCodeSpaceAccess(gomock.Any(), gomock.Any(), codeSpace.ID).
+				Return(nil, nil, testcase.repoListErr).
+				MaxTimes(1)
+
+			svc := code.NewService(
+				cfg,
+				timeProvider,
+				dbPool,
+				crypto,
+				mailClient,
+				tmplManager,
+				pistonClient,
+				repo,
+				authRepo,
+			)
+
+			_, _, err := svc.ListCodeSpaceUsers(testcase.ctx, codeSpace.Name)
+			require.Error(t, err)
+
+			if testcase.wantErr != nil {
+				require.ErrorIs(t, err, testcase.wantErr)
+			}
+		})
+	}
+}
+
+func TestServiceSendCodeSpaceInvitationMailSuccess(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	email := testkit.GenerateFakeEmail()
+
+	ctrl := gomock.NewController(t)
+	timeProvider := timekeeper.NewFrozenProvider()
+	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
+	mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
+	tmplManager := templatesmanager.NewManager()
+	pistonClient := pistonmocks.NewMockClient(ctrl)
+	repo := codemocks.NewMockRepository(ctrl)
+	authRepo := authmocks.NewMockRepository(ctrl)
+
+	svc := code.NewService(
+		cfg,
+		timeProvider,
+		dbPool,
+		crypto,
+		mailClient,
+		tmplManager,
+		pistonClient,
+		repo,
+		authRepo,
+	)
+
+	invitationURL := "http://localhost:3000/code/space/" +
+		"habitable-slaking-volatile-granger-mov/invitation/" +
+		"1nv1t4t10njwt"
+	err := svc.SendCodeSpaceInvitationMail(
+		context.Background(),
+		email,
+		templatesmanager.CodeSpaceInvitationEmailTemplateData{
+			InvitationURL: invitationURL,
+		},
+	)
+	require.NoError(t, err)
+	require.Len(t, mailClient.Logs, 1)
+
+	lastMail := mailClient.Logs[len(mailClient.Logs)-1]
+	require.Equal(t, []string{email}, lastMail.To)
+	require.Equal(t, "You've been invited to collaborate on a code space!", lastMail.Subject)
+	require.WithinDuration(t, timeProvider.Now(), lastMail.SentAt, testkit.TimeToleranceExact)
+
+	mailMessage := string(lastMail.Message)
+	require.Contains(t, mailMessage, "Nymphadora - You've been invited to collaborate on a code space!")
+	require.Contains(t, mailMessage, "Accept Invitation")
+	require.Contains(t, mailMessage, invitationURL)
+}
+
+func TestServiceSendCodeSpaceInvitationMailError(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	invitationURL := "http://localhost:3000/code/space/" +
+		"habitable-slaking-volatile-granger-mov/invitation/" +
+		"1nv1t4t10njwt"
+	email := testkit.GenerateFakeEmail()
+	tmplLoadErr := errors.New("Load failed")
+	mailSendErr := errors.New("Send failed")
+
+	testcases := map[string]struct {
+		tmplLoadErr error
+		mailSendErr error
+		wantErr     error
+	}{
+		"template Load fails": {
+			tmplLoadErr: tmplLoadErr,
+			mailSendErr: nil,
+			wantErr:     tmplLoadErr,
+		},
+		"mail Send fails": {
+			tmplLoadErr: nil,
+			mailSendErr: mailSendErr,
+			wantErr:     mailSendErr,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
+			repo := codemocks.NewMockRepository(ctrl)
+			authRepo := authmocks.NewMockRepository(ctrl)
+
+			svc := code.NewService(
+				cfg,
+				timeProvider,
+				dbPool,
+				crypto,
+				mailClient,
+				tmplManager,
+				pistonClient,
+				repo,
+				authRepo,
+			)
+
+			tmplManager.
+				EXPECT().
+				Load("codespaceinvitation").
+				Return(texttemplate.New("text"), htmltemplate.New("html"), testcase.tmplLoadErr).
+				MaxTimes(1)
+
+			mailClient.
+				EXPECT().
+				Send(
+					[]string{email},
+					"You've been invited to collaborate on a code space!",
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+				).
+				Return(testcase.mailSendErr).
+				MaxTimes(1)
+
+			err := svc.SendCodeSpaceInvitationMail(
+				context.Background(),
+				email,
+				templatesmanager.CodeSpaceInvitationEmailTemplateData{
+					InvitationURL: invitationURL,
+				},
+			)
+			require.ErrorIs(t, err, testcase.wantErr)
+		})
+	}
+}
+
+func TestServiceInviteCodeSpaceUserSuccess(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	author, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, "python")
+
+	editor, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+
+	viewer, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+
+	testcases := map[string]struct {
+		inviteeEmail string
+		accessLevel  code.CodeSpaceAccessLevel
+	}{
+		"Author invites editor": {
+			inviteeEmail: editor.Email,
+			accessLevel:  code.CodeSpaceAccessLevelReadWrite,
+		},
+		"Author invites viewer": {
+			inviteeEmail: viewer.Email,
+			accessLevel:  code.CodeSpaceAccessLevelReadOnly,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
+			mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
+			tmplManager := templatesmanager.NewManager()
+			pistonClient := pistonmocks.NewMockClient(ctrl)
+			repo := code.NewRepository(timeProvider)
+			authRepo := auth.NewRepository(timeProvider)
+
+			svc := code.NewService(
+				cfg,
+				timeProvider,
+				dbPool,
+				crypto,
+				mailClient,
+				tmplManager,
+				pistonClient,
+				repo,
+				authRepo,
+			)
+
+			mailCount := len(mailClient.Logs)
+
+			ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, author.UUID)
+			err := svc.InviteCodeSpaceUser(ctx, codeSpace.Name, testcase.inviteeEmail, testcase.accessLevel)
+			require.NoError(t, err)
+
+			require.Len(t, mailClient.Logs, mailCount+1)
+
+			lastMail := mailClient.Logs[len(mailClient.Logs)-1]
+			require.Equal(t, []string{testcase.inviteeEmail}, lastMail.To)
+			require.Equal(t, "You've been invited to collaborate on a code space!", lastMail.Subject)
+			require.WithinDuration(t, timeProvider.Now(), lastMail.SentAt, testkit.TimeToleranceExact)
+
+			mailMessage := string(lastMail.Message)
+			require.Contains(t, mailMessage, "Nymphadora - You've been invited to collaborate on a code space!")
+			require.Contains(t, mailMessage, "Accept Invitation")
+
+			pattern := fmt.Sprintf(
+				cfg.FrontendBaseURL+code.FrontendCodeSpaceInvitationRoute,
+				codeSpace.Name,
+				`(\S+)`,
+			)
+			r, err := regexp.Compile(pattern)
+			require.NoError(t, err)
+
+			matches := r.FindStringSubmatch(mailMessage)
+			require.Len(t, matches, 2)
+
+			invitationToken := matches[1]
+			claims := &cryptocore.CodeSpaceInvitationJWTClaims{}
+			parsedToken, err := jwt.ParseWithClaims(invitationToken, claims, func(t *jwt.Token) (any, error) {
+				return []byte(cfg.SecretKey), nil
+			})
+			require.NoError(t, err)
+
+			require.NotNil(t, parsedToken)
+			require.True(t, parsedToken.Valid)
+			require.Equal(t, author.UUID, claims.Subject)
+			require.Equal(t, testcase.inviteeEmail, claims.InviteeEmail)
+			require.Equal(t, string(cryptocore.JWTTypeCodeSpaceInvitation), claims.TokenType)
+			require.WithinDuration(t, timeProvider.Now(), time.Time(claims.IssuedAt), testkit.TimeToleranceExact)
+			require.WithinDuration(
+				t,
+				timeProvider.Now().Add(cryptocore.JWTLifetimeCodeSpaceInvitation),
+				time.Time(claims.ExpiresAt),
+				testkit.TimeToleranceExact,
+			)
+		})
+	}
+}
+
+func TestServiceInviteCodeSpaceUserError(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	authorUUID := uuid.NewString()
+	inviteeEmail := testkit.GenerateFakeEmail()
+
+	genericRepoErr := errors.New("GetCodeSpaceWithAccessByName failed")
+	createJWTErr := errors.New("CreateCodeSpaceInvitationJWT failed")
+	mailClientErr := errors.New("Send failed")
+
+	testcases := map[string]struct {
+		ctx               context.Context
+		authorAccessLevel code.CodeSpaceAccessLevel
+		repoErr           error
+		createJWTErr      error
+		mailClientErr     error
+		wantErr           error
+	}{
+		"No user UUID in context": {
+			ctx:               context.Background(),
+			authorAccessLevel: code.CodeSpaceAccessLevelReadWrite,
+			repoErr:           nil,
+			createJWTErr:      nil,
+			mailClientErr:     nil,
+			wantErr:           nil,
+		},
+		"Access denied without write access": {
+			ctx:               context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			authorAccessLevel: code.CodeSpaceAccessLevelReadOnly,
+			repoErr:           nil,
+			createJWTErr:      nil,
+			mailClientErr:     nil,
+			wantErr:           errutils.ErrCodeSpaceAccessDenied,
+		},
+		"GetCodeSpaceWithAccessByName fails, no rows returned": {
+			ctx:               context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			authorAccessLevel: code.CodeSpaceAccessLevelReadWrite,
+			repoErr:           errutils.ErrDatabaseNoRowsReturned,
+			createJWTErr:      nil,
+			mailClientErr:     nil,
+			wantErr:           errutils.ErrCodeSpaceNotFound,
+		},
+		"GetCodeSpaceWithAccessByName fails, generic error": {
+			ctx:               context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			authorAccessLevel: code.CodeSpaceAccessLevelReadWrite,
+			repoErr:           genericRepoErr,
+			createJWTErr:      nil,
+			mailClientErr:     nil,
+			wantErr:           genericRepoErr,
+		},
+		"CreateCodeSpaceInvitationJWT fails": {
+			ctx:               context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			authorAccessLevel: code.CodeSpaceAccessLevelReadWrite,
+			repoErr:           nil,
+			createJWTErr:      createJWTErr,
+			mailClientErr:     nil,
+			wantErr:           createJWTErr,
+		},
+		"mailClient.Send fails": {
+			ctx:               context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			authorAccessLevel: code.CodeSpaceAccessLevelReadWrite,
+			repoErr:           nil,
+			createJWTErr:      nil,
+			mailClientErr:     mailClientErr,
+			wantErr:           mailClientErr,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
+			repo := codemocks.NewMockRepository(ctrl)
+			authRepo := authmocks.NewMockRepository(ctrl)
+
+			codeSpace := &code.CodeSpace{
+				ID:         42,
+				AuthorUUID: &authorUUID,
+				Name:       "habitable-slaking-volatile-granger-mov",
+				Language:   "python",
+				Contents:   "print('hello')",
+			}
+			codeSpaceAccess := &code.CodeSpaceAccess{
+				ID:          314,
+				UserUUID:    authorUUID,
+				CodeSpaceID: codeSpace.ID,
+				Level:       testcase.authorAccessLevel,
+			}
+
+			repo.
+				EXPECT().
+				GetCodeSpaceWithAccessByName(gomock.Any(), gomock.Any(), authorUUID, codeSpace.Name).
+				Return(codeSpace, codeSpaceAccess, testcase.repoErr).
+				MaxTimes(1)
+
+			crypto.
+				EXPECT().
+				CreateCodeSpaceInvitationJWT(
+					authorUUID,
+					inviteeEmail,
+					codeSpace.ID,
+					int(code.CodeSpaceAccessLevelReadWrite),
+				).
+				Return("1nv1t4t10nt0k3n", testcase.createJWTErr).
+				MaxTimes(1)
+
+			tmplManager.
+				EXPECT().
+				Load("codespaceinvitation").
+				Return(texttemplate.New("text"), htmltemplate.New("html"), nil).
+				MaxTimes(1)
+
+			mailClient.
+				EXPECT().
+				Send(
+					[]string{inviteeEmail},
+					"You've been invited to collaborate on a code space!",
+					gomock.Any(),
+					gomock.Any(),
+					gomock.Any(),
+				).
+				Return(testcase.mailClientErr).
+				MaxTimes(1)
+
+			svc := code.NewService(
+				cfg,
+				timeProvider,
+				dbPool,
+				crypto,
+				mailClient,
+				tmplManager,
+				pistonClient,
+				repo,
+				authRepo,
+			)
+
+			err := svc.InviteCodeSpaceUser(
+				testcase.ctx,
+				codeSpace.Name,
+				inviteeEmail,
+				code.CodeSpaceAccessLevelReadWrite,
+			)
 			require.Error(t, err)
 
 			if testcase.wantErr != nil {
