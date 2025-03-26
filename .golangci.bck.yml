@@ -1,4 +1,3 @@
-version: "2"
 linters:
   enable:
     - asasalint
@@ -11,12 +10,14 @@ linters:
     - decorder
     - dupword
     - durationcheck
+    - errcheck
     - errchkjson
     - errname
     - errorlint
     - fatcontext
     - forbidigo
     - forcetypeassert
+    - gci
     - ginkgolinter
     - gocheckcompilerdirectives
     - gochecknoinits
@@ -25,15 +26,21 @@ linters:
     - gocyclo
     - godot
     - godox
+    - gofmt
+    - gofumpt
     - goheader
+    - goimports
     - gomoddirectives
     - gomodguard
     - goprintffuncname
     - gosec
+    - gosimple
     - gosmopolitan
+    - govet
     - grouper
     - importas
     - inamedparam
+    - ineffassign
     - intrange
     - lll
     - loggercheck
@@ -63,6 +70,7 @@ linters:
     - spancheck
     - sqlclosecheck
     - staticcheck
+    - stylecheck
     - tagalign
     - testableexamples
     - testifylint
@@ -71,53 +79,36 @@ linters:
     - tparallel
     - unconvert
     - unparam
+    - unused
     - usestdlibvars
     - wastedassign
     - whitespace
     - wrapcheck
     - zerologlint
-  settings:
-    gosec:
-      excludes:
-        - G101
-    mnd:
-      ignored-files:
-        - internal/testkitinternal/*
-        - pkg/testkit/*
-      ignored-functions:
-        - GetLongFileName
-        - getFuncName
-    perfsprint:
-      strconcat: false
-    revive:
-      rules:
-        - name: unexported-return
-          disabled: true
-    wrapcheck:
-      ignore-sigs:
-        - Errorf
-        - FormatError
-        - FormatErrorf
-  exclusions:
-    generated: lax
-    presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
-formatters:
-  enable:
-    - gci
-    - gofmt
-    - gofumpt
-    - goimports
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+
+linters-settings:
+  gosec:
+    excludes:
+      - G101
+
+  mnd:
+    ignored-files:
+      - internal/testkitinternal/*
+      - pkg/testkit/*
+    ignored-functions:
+      - GetLongFileName
+      - getFuncName
+
+  perfsprint:
+    strconcat: false
+
+  revive:
+    rules:
+      - name: unexported-return
+        disabled: true
+
+  wrapcheck:
+    ignoreSigs:
+      - Errorf
+      - FormatError
+      - FormatErrorf

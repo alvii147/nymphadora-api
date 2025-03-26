@@ -113,7 +113,7 @@ func (r *router) addRoute(
 	r.corsMethods[pattern] = append(r.corsMethods[pattern], method)
 
 	if !registered {
-		r.ServeMux.Handle(
+		r.Handle(
 			fmt.Sprintf("%s %s", http.MethodOptions, pattern),
 			ResponseWriterMiddleware(
 				r.rootMiddleware(
@@ -124,7 +124,7 @@ func (r *router) addRoute(
 		)
 	}
 
-	r.ServeMux.Handle(
+	r.Handle(
 		fmt.Sprintf("%s %s", method, pattern),
 		ResponseWriterMiddleware(
 			r.rootMiddleware(

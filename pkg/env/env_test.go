@@ -33,7 +33,7 @@ func TestNewConfigSuccess(t *testing.T) {
 
 	require.True(t, config.BoolTrue)
 	require.False(t, config.BoolFalse)
-	require.EqualValues(t, 42, config.Int)
+	require.Equal(t, 42, config.Int)
 	require.EqualValues(t, -42, config.Int64)
 	require.EqualValues(t, 42, config.Uint64)
 	require.InDelta(t, 3.2, config.Float32, 0.1)

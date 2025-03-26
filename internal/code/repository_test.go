@@ -149,8 +149,8 @@ func TestRepositoryListCodeSpaces(t *testing.T) {
 			codeSpaces, codeSpaceAccesses, err := repo.ListCodeSpaces(context.Background(), dbConn, testcase.userUUID)
 			require.NoError(t, err)
 
-			require.Equal(t, len(testcase.wantCodeSpaceAccessMap), len(codeSpaces))
-			require.Equal(t, len(testcase.wantCodeSpaceAccessMap), len(codeSpaceAccesses))
+			require.Len(t, codeSpaces, len(testcase.wantCodeSpaceAccessMap))
+			require.Len(t, codeSpaceAccesses, len(testcase.wantCodeSpaceAccessMap))
 
 			wantCodeSpaceIDs := make([]int64, len(testcase.wantCodeSpaceAccessMap))
 			i := 0
