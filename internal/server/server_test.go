@@ -3,10 +3,12 @@ package server_test
 import (
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/alvii147/nymphadora-api/internal/testkitinternal"
+	"github.com/alvii147/nymphadora-api/internal/server"
+	"github.com/alvii147/nymphadora-api/pkg/errutils"
 	"github.com/alvii147/nymphadora-api/pkg/httputils"
 	"github.com/stretchr/testify/require"
 )
@@ -14,12 +16,19 @@ import (
 var TestServerURL = ""
 
 func TestMain(m *testing.M) {
-	ctrl, srv := testkitinternal.MustCreateTestServer()
+	ctrl, err := server.NewController()
+	if err != nil {
+		panic(errutils.FormatError(err))
+	}
+
+	srv := httptest.NewServer(ctrl)
 	TestServerURL = srv.URL
 
 	code := m.Run()
 
-	testkitinternal.MustCloseTestServer(ctrl, srv)
+	ctrl.Close()
+	srv.Close()
+
 	os.Exit(code)
 }
 
