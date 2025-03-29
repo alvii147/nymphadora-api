@@ -65,16 +65,16 @@ type Service interface {
 		inviteeEmail string,
 		accessLevel CodeSpaceAccessLevel,
 	) error
-	RemoveCodeSpaceUser(
-		ctx context.Context,
-		name string,
-		inviteeUUID string,
-	) error
 	AcceptCodeSpaceUserInvitation(
 		ctx context.Context,
 		name string,
 		token string,
 	) (*CodeSpace, *CodeSpaceAccess, error)
+	RemoveCodeSpaceUser(
+		ctx context.Context,
+		name string,
+		codeSpaceUserUUID string,
+	) error
 }
 
 // service implements Service.
@@ -552,52 +552,6 @@ func (svc *service) InviteCodeSpaceUser(
 	return nil
 }
 
-// RemoveCodeSpaceUser revokes a user's access to a code space.
-func (svc *service) RemoveCodeSpaceUser(
-	ctx context.Context,
-	name string,
-	inviteeUUID string,
-) error {
-	userUUID, err := auth.GetUserUUIDFromContext(ctx)
-	if err != nil {
-		return errutils.FormatError(err)
-	}
-
-	dbConn, err := svc.dbPool.Acquire(ctx)
-	if err != nil {
-		return errutils.FormatError(err, "svc.dbPool.Acquire failed")
-	}
-	defer dbConn.Release()
-
-	codeSpace, codeSpaceAccess, err := svc.repository.GetCodeSpaceWithAccessByName(
-		ctx,
-		dbConn,
-		userUUID,
-		name,
-	)
-	if err != nil {
-		switch {
-		case errors.Is(err, errutils.ErrDatabaseNoRowsReturned):
-			err = errutils.FormatError(errutils.ErrCodeSpaceNotFound)
-		default:
-			err = errutils.FormatError(err)
-		}
-
-		return err
-	}
-
-	if codeSpaceAccess.Level < CodeSpaceAccessLevelReadWrite {
-		return errutils.FormatError(errutils.ErrCodeSpaceAccessDenied)
-	}
-
-	err = svc.repository.DeleteCodeSpaceAccess(ctx, dbConn, inviteeUUID, codeSpace.ID)
-	if err != nil {
-		return errutils.FormatError(err)
-	}
-
-	return nil
-}
-
 // AcceptCodeSpaceUserInvitation accepts a code space invitation from a given code space invitation JWT.
 func (svc *service) AcceptCodeSpaceUserInvitation(
 	ctx context.Context,
@@ -648,4 +602,69 @@ func (svc *service) AcceptCodeSpaceUserInvitation(
 	}
 
 	return codeSpace, codeSpaceAccess, nil
+}
+
+// RemoveCodeSpaceUser revokes a user's access to a code space.
+func (svc *service) RemoveCodeSpaceUser(
+	ctx context.Context,
+	name string,
+	codeSpaceUserUUID string,
+) error {
+	userUUID, err := auth.GetUserUUIDFromContext(ctx)
+	if err != nil {
+		return errutils.FormatError(err)
+	}
+
+	dbConn, err := svc.dbPool.Acquire(ctx)
+	if err != nil {
+		return errutils.FormatError(err, "svc.dbPool.Acquire failed")
+	}
+	defer dbConn.Release()
+
+	codeSpace, userAccess, err := svc.repository.GetCodeSpaceWithAccessByName(
+		ctx,
+		dbConn,
+		userUUID,
+		name,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, errutils.ErrDatabaseNoRowsReturned):
+			err = errutils.FormatError(errutils.ErrCodeSpaceNotFound)
+		default:
+			err = errutils.FormatError(err)
+		}
+
+		return err
+	}
+
+	_, codeSpaceUserAccess, err := svc.repository.GetCodeSpaceWithAccessByName(
+		ctx,
+		dbConn,
+		codeSpaceUserUUID,
+		name,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, errutils.ErrDatabaseNoRowsReturned):
+			err = errutils.FormatError(errutils.ErrCodeSpaceAccessNotFound)
+		default:
+			err = errutils.FormatError(err)
+		}
+
+		return err
+	}
+
+	if userUUID != codeSpaceUserUUID &&
+		(userAccess.Level < CodeSpaceAccessLevelReadWrite ||
+			userAccess.Level <= codeSpaceUserAccess.Level) {
+		return errutils.FormatError(errutils.ErrCodeSpaceAccessDenied)
+	}
+
+	err = svc.repository.DeleteCodeSpaceAccess(ctx, dbConn, codeSpaceUserUUID, codeSpace.ID)
+	if err != nil {
+		return errutils.FormatError(err)
+	}
+
+	return nil
 }

@@ -2110,6 +2110,488 @@ func TestServiceInviteCodeSpaceUserError(t *testing.T) {
 	}
 }
 
+func TestServiceRemoveCodeSpaceUserAuthorCanRemoveViewer(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	author, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, "python")
+
+	viewer, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		viewer.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadOnly,
+	)
+
+	ctrl := gomock.NewController(t)
+	timeProvider := timekeeper.NewFrozenProvider()
+	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
+	mailClient := mailclientmocks.NewMockClient(ctrl)
+	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+	pistonClient := pistonmocks.NewMockClient(ctrl)
+	repo := code.NewRepository(timeProvider)
+	authRepo := auth.NewRepository(timeProvider)
+
+	svc := code.NewService(
+		cfg,
+		timeProvider,
+		dbPool,
+		crypto,
+		mailClient,
+		tmplManager,
+		pistonClient,
+		repo,
+		authRepo,
+	)
+
+	ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, author.UUID)
+	err := svc.RemoveCodeSpaceUser(ctx, codeSpace.Name, viewer.UUID)
+	require.NoError(t, err)
+
+	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	users, _, err := repo.ListUsersWithCodeSpaceAccess(context.Background(), dbConn, codeSpace.ID)
+	require.NoError(t, err)
+
+	userUUIDs := make([]string, len(users))
+	for i, user := range users {
+		userUUIDs[i] = user.UUID
+	}
+
+	require.NotContains(t, userUUIDs, viewer.UUID)
+}
+
+func TestServiceRemoveCodeSpaceUserEditorCanRemoveViewer(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	author, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, "python")
+
+	editor, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		editor.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadWrite,
+	)
+
+	viewer, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		viewer.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadOnly,
+	)
+
+	ctrl := gomock.NewController(t)
+	timeProvider := timekeeper.NewFrozenProvider()
+	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	crypto := cryptocoremocks.NewMockCrypto(ctrl)
+	mailClient := mailclientmocks.NewMockClient(ctrl)
+	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+	pistonClient := pistonmocks.NewMockClient(ctrl)
+	repo := code.NewRepository(timeProvider)
+	authRepo := auth.NewRepository(timeProvider)
+
+	svc := code.NewService(
+		cfg,
+		timeProvider,
+		dbPool,
+		crypto,
+		mailClient,
+		tmplManager,
+		pistonClient,
+		repo,
+		authRepo,
+	)
+
+	ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, editor.UUID)
+	err := svc.RemoveCodeSpaceUser(ctx, codeSpace.Name, viewer.UUID)
+	require.NoError(t, err)
+
+	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	users, _, err := repo.ListUsersWithCodeSpaceAccess(context.Background(), dbConn, codeSpace.ID)
+	require.NoError(t, err)
+
+	userUUIDs := make([]string, len(users))
+	for i, user := range users {
+		userUUIDs[i] = user.UUID
+	}
+
+	require.NotContains(t, userUUIDs, viewer.UUID)
+}
+
+func TestServiceRemoveCodeSpaceUserSelfRemoval(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	author, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, "python")
+
+	editor, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		editor.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadWrite,
+	)
+
+	viewer, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		viewer.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadOnly,
+	)
+
+	testcases := map[string]struct {
+		codeSpaceUserUUID string
+	}{
+		"Author can remove self access": {
+			codeSpaceUserUUID: author.UUID,
+		},
+		"Editor can remove self access": {
+			codeSpaceUserUUID: editor.UUID,
+		},
+		"Viewer can remove self access": {
+			codeSpaceUserUUID: viewer.UUID,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
+			repo := code.NewRepository(timeProvider)
+			authRepo := auth.NewRepository(timeProvider)
+
+			svc := code.NewService(
+				cfg,
+				timeProvider,
+				dbPool,
+				crypto,
+				mailClient,
+				tmplManager,
+				pistonClient,
+				repo,
+				authRepo,
+			)
+
+			ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, testcase.codeSpaceUserUUID)
+			err := svc.RemoveCodeSpaceUser(ctx, codeSpace.Name, testcase.codeSpaceUserUUID)
+			require.NoError(t, err)
+
+			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			users, _, err := repo.ListUsersWithCodeSpaceAccess(context.Background(), dbConn, codeSpace.ID)
+			require.NoError(t, err)
+
+			userUUIDs := make([]string, len(users))
+			for i, user := range users {
+				userUUIDs[i] = user.UUID
+			}
+
+			require.NotContains(t, userUUIDs, testcase.codeSpaceUserUUID)
+		})
+	}
+}
+
+func TestServiceRemoveCodeSpaceUserFails(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	author, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, "python")
+
+	editor1, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		editor1.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadWrite,
+	)
+
+	editor2, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		editor2.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadWrite,
+	)
+
+	viewer1, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		viewer1.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadOnly,
+	)
+
+	viewer2, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+	testkitinternal.MustCreateCodeSpaceAccess(
+		t,
+		viewer2.UUID,
+		codeSpace.ID,
+		code.CodeSpaceAccessLevelReadOnly,
+	)
+
+	thirdPartyUser, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
+		u.IsActive = true
+	})
+
+	testcases := map[string]struct {
+		userUUID          string
+		codeSpaceUserUUID string
+		wantErr           error
+	}{
+		"Author cannot remove editor access": {
+			userUUID:          author.UUID,
+			codeSpaceUserUUID: editor1.UUID,
+			wantErr:           errutils.ErrCodeSpaceAccessDenied,
+		},
+		"Editor cannot remove author access": {
+			userUUID:          editor1.UUID,
+			codeSpaceUserUUID: author.UUID,
+			wantErr:           errutils.ErrCodeSpaceAccessDenied,
+		},
+		"Editor cannot remove editor access": {
+			userUUID:          editor1.UUID,
+			codeSpaceUserUUID: editor2.UUID,
+			wantErr:           errutils.ErrCodeSpaceAccessDenied,
+		},
+		"Viewer cannot remove author access": {
+			userUUID:          viewer1.UUID,
+			codeSpaceUserUUID: author.UUID,
+			wantErr:           errutils.ErrCodeSpaceAccessDenied,
+		},
+		"Viewer cannot remove editor access": {
+			userUUID:          viewer1.UUID,
+			codeSpaceUserUUID: editor1.UUID,
+			wantErr:           errutils.ErrCodeSpaceAccessDenied,
+		},
+		"Viewer cannot remove viewer access": {
+			userUUID:          viewer1.UUID,
+			codeSpaceUserUUID: viewer2.UUID,
+			wantErr:           errutils.ErrCodeSpaceAccessDenied,
+		},
+		"Third party user cannot remove author access": {
+			userUUID:          thirdPartyUser.UUID,
+			codeSpaceUserUUID: author.UUID,
+			wantErr:           errutils.ErrCodeSpaceNotFound,
+		},
+		"Third party user cannot remove editor access": {
+			userUUID:          thirdPartyUser.UUID,
+			codeSpaceUserUUID: editor1.UUID,
+			wantErr:           errutils.ErrCodeSpaceNotFound,
+		},
+		"Third party user cannot remove viewer access": {
+			userUUID:          thirdPartyUser.UUID,
+			codeSpaceUserUUID: viewer1.UUID,
+			wantErr:           errutils.ErrCodeSpaceNotFound,
+		},
+		"Third party user access not found": {
+			userUUID:          author.UUID,
+			codeSpaceUserUUID: thirdPartyUser.UUID,
+			wantErr:           errutils.ErrCodeSpaceAccessNotFound,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
+			repo := code.NewRepository(timeProvider)
+			authRepo := auth.NewRepository(timeProvider)
+
+			svc := code.NewService(
+				cfg,
+				timeProvider,
+				dbPool,
+				crypto,
+				mailClient,
+				tmplManager,
+				pistonClient,
+				repo,
+				authRepo,
+			)
+
+			ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, testcase.userUUID)
+			err := svc.RemoveCodeSpaceUser(ctx, codeSpace.Name, testcase.codeSpaceUserUUID)
+			require.Error(t, err)
+			require.ErrorIs(t, err, testcase.wantErr)
+		})
+	}
+}
+
+func TestServiceRemoveCodeSpaceUserError(t *testing.T) {
+	t.Parallel()
+
+	cfg := testkitinternal.MustCreateConfig()
+
+	authorUUID := uuid.NewString()
+	viewerUUID := uuid.NewString()
+
+	authorRepoGetErr := errors.New("GetCodeSpaceWithAccessByName failed for author")
+	viewerRepoGetErr := errors.New("GetCodeSpaceWithAccessByName failed for viewer")
+	repoDeleteErr := errors.New("DeleteCodeSpaceAccess failed")
+
+	codeSpace := &code.CodeSpace{
+		ID:         42,
+		AuthorUUID: &authorUUID,
+		Name:       "habitable-slaking-volatile-granger-mov",
+		Language:   "python",
+		Contents:   "print('hello')",
+	}
+	authorCodeSpaceAccess := &code.CodeSpaceAccess{
+		ID:          314,
+		UserUUID:    authorUUID,
+		CodeSpaceID: codeSpace.ID,
+		Level:       code.CodeSpaceAccessLevelReadWrite,
+	}
+	viewerCodeSpaceAccess := &code.CodeSpaceAccess{
+		ID:          159,
+		UserUUID:    viewerUUID,
+		CodeSpaceID: codeSpace.ID,
+		Level:       code.CodeSpaceAccessLevelReadOnly,
+	}
+
+	testcases := map[string]struct {
+		ctx              context.Context
+		authorRepoGetErr error
+		viewerRepoGetErr error
+		repoDeleteErr    error
+		wantErr          error
+	}{
+		"No user UUID in context": {
+			ctx:              context.Background(),
+			authorRepoGetErr: nil,
+			viewerRepoGetErr: nil,
+			repoDeleteErr:    nil,
+			wantErr:          nil,
+		},
+		"GetCodeSpaceWithAccessByName fails for author": {
+			ctx:              context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			authorRepoGetErr: authorRepoGetErr,
+			viewerRepoGetErr: nil,
+			repoDeleteErr:    nil,
+			wantErr:          authorRepoGetErr,
+		},
+		"GetCodeSpaceWithAccessByName fails for viwer": {
+			ctx:              context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			authorRepoGetErr: nil,
+			viewerRepoGetErr: viewerRepoGetErr,
+			repoDeleteErr:    nil,
+			wantErr:          viewerRepoGetErr,
+		},
+		"DeleteCodeSpaceAccess fails": {
+			ctx:              context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, authorUUID),
+			authorRepoGetErr: nil,
+			viewerRepoGetErr: nil,
+			repoDeleteErr:    repoDeleteErr,
+			wantErr:          repoDeleteErr,
+		},
+	}
+
+	for name, testcase := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			pistonClient := pistonmocks.NewMockClient(ctrl)
+			repo := codemocks.NewMockRepository(ctrl)
+			authRepo := authmocks.NewMockRepository(ctrl)
+
+			repo.
+				EXPECT().
+				GetCodeSpaceWithAccessByName(gomock.Any(), gomock.Any(), authorUUID, codeSpace.Name).
+				Return(codeSpace, authorCodeSpaceAccess, testcase.authorRepoGetErr).
+				MaxTimes(1)
+
+			repo.
+				EXPECT().
+				GetCodeSpaceWithAccessByName(gomock.Any(), gomock.Any(), viewerUUID, codeSpace.Name).
+				Return(codeSpace, viewerCodeSpaceAccess, testcase.viewerRepoGetErr).
+				MaxTimes(1)
+
+			repo.
+				EXPECT().
+				DeleteCodeSpaceAccess(gomock.Any(), gomock.Any(), viewerUUID, codeSpace.ID).
+				Return(testcase.repoDeleteErr).
+				MaxTimes(1)
+
+			svc := code.NewService(
+				cfg,
+				timeProvider,
+				dbPool,
+				crypto,
+				mailClient,
+				tmplManager,
+				pistonClient,
+				repo,
+				authRepo,
+			)
+
+			err := svc.RemoveCodeSpaceUser(testcase.ctx, codeSpace.Name, viewerUUID)
+			require.Error(t, err)
+
+			if testcase.wantErr != nil {
+				require.ErrorIs(t, err, testcase.wantErr)
+			}
+		})
+	}
+}
+
 func TestServiceCodeSpace(t *testing.T) {
 	t.Parallel()
 

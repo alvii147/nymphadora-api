@@ -153,17 +153,17 @@ func (mr *MockServiceMockRecorder) ListCodeSpaces(ctx any) *gomock.Call {
 }
 
 // RemoveCodeSpaceUser mocks base method.
-func (m *MockService) RemoveCodeSpaceUser(ctx context.Context, name, inviteeUUID string) error {
+func (m *MockService) RemoveCodeSpaceUser(ctx context.Context, name, codeSpaceUserUUID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveCodeSpaceUser", ctx, name, inviteeUUID)
+	ret := m.ctrl.Call(m, "RemoveCodeSpaceUser", ctx, name, codeSpaceUserUUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveCodeSpaceUser indicates an expected call of RemoveCodeSpaceUser.
-func (mr *MockServiceMockRecorder) RemoveCodeSpaceUser(ctx, name, inviteeUUID any) *gomock.Call {
+func (mr *MockServiceMockRecorder) RemoveCodeSpaceUser(ctx, name, codeSpaceUserUUID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveCodeSpaceUser", reflect.TypeOf((*MockService)(nil).RemoveCodeSpaceUser), ctx, name, inviteeUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveCodeSpaceUser", reflect.TypeOf((*MockService)(nil).RemoveCodeSpaceUser), ctx, name, codeSpaceUserUUID)
 }
 
 // RunCodeSpace mocks base method.

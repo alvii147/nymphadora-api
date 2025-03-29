@@ -12,6 +12,7 @@ var (
 	ErrAPIKeyNotFound               = errors.New("api key not found")
 	ErrCodeSpaceAlreadyExists       = errors.New("code space already exists")
 	ErrCodeSpaceNotFound            = errors.New("code space not found")
+	ErrCodeSpaceAccessNotFound      = errors.New("code space access not found")
 	ErrCodeSpaceAccessDenied        = errors.New("code space access denied")
 	ErrCodeSpaceUnsupportedLanguage = errors.New("code space language not supported")
 )
