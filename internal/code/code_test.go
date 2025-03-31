@@ -1,13 +1,27 @@
 package code_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/alvii147/nymphadora-api/internal/code"
+	"github.com/alvii147/nymphadora-api/internal/database"
+	"github.com/alvii147/nymphadora-api/internal/testkitinternal"
 	"github.com/alvii147/nymphadora-api/pkg/api"
 	"github.com/alvii147/nymphadora-api/pkg/validate"
 	"github.com/stretchr/testify/require"
 )
+
+var TestDBPool database.Pool
+
+func TestMain(m *testing.M) {
+	TestDBPool = testkitinternal.MustNewDatabasePool()
+
+	code := m.Run()
+
+	TestDBPool.Close()
+	os.Exit(code)
+}
 
 func TestCodeSpaceNameDataInitialized(t *testing.T) {
 	t.Parallel()

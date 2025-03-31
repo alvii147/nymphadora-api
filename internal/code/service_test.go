@@ -82,7 +82,6 @@ func TestServiceCreateCodeSpaceSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -93,7 +92,7 @@ func TestServiceCreateCodeSpaceSuccess(t *testing.T) {
 	svc := code.NewService(
 		cfg,
 		timeProvider,
-		dbPool,
+		TestDBPool,
 		crypto,
 		mailClient,
 		tmplManager,
@@ -365,7 +364,6 @@ func TestServiceListCodeSpacesSuccess(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -376,7 +374,7 @@ func TestServiceListCodeSpacesSuccess(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,
@@ -591,7 +589,6 @@ func TestServiceGetCodeSpace(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -602,7 +599,7 @@ func TestServiceGetCodeSpace(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,
@@ -730,7 +727,6 @@ func TestServiceUpdateCodeSpaceAuthorSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -745,7 +741,7 @@ func TestServiceUpdateCodeSpaceAuthorSuccess(t *testing.T) {
 	svc := code.NewService(
 		cfg,
 		timeProvider,
-		dbPool,
+		TestDBPool,
 		crypto,
 		mailClient,
 		tmplManager,
@@ -792,7 +788,6 @@ func TestServiceUpdateCodeSpaceEditorSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -807,7 +802,7 @@ func TestServiceUpdateCodeSpaceEditorSuccess(t *testing.T) {
 	svc := code.NewService(
 		cfg,
 		timeProvider,
-		dbPool,
+		TestDBPool,
 		crypto,
 		mailClient,
 		tmplManager,
@@ -876,7 +871,6 @@ func TestServiceUpdateCodeSpaceFails(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -891,7 +885,7 @@ func TestServiceUpdateCodeSpaceFails(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,
@@ -1037,7 +1031,6 @@ func TestServiceDeleteCodeSpaceAuthorSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -1048,7 +1041,7 @@ func TestServiceDeleteCodeSpaceAuthorSuccess(t *testing.T) {
 	svc := code.NewService(
 		cfg,
 		timeProvider,
-		dbPool,
+		TestDBPool,
 		crypto,
 		mailClient,
 		tmplManager,
@@ -1061,7 +1054,10 @@ func TestServiceDeleteCodeSpaceAuthorSuccess(t *testing.T) {
 	err := svc.DeleteCodeSpace(ctx, codeSpace.Name)
 	require.NoError(t, err)
 
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	_, err = repo.GetCodeSpace(context.Background(), dbConn, codeSpace.ID)
 	require.Error(t, err)
 	require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsReturned)
@@ -1089,7 +1085,6 @@ func TestServiceDeleteCodeSpaceEditorSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -1100,7 +1095,7 @@ func TestServiceDeleteCodeSpaceEditorSuccess(t *testing.T) {
 	svc := code.NewService(
 		cfg,
 		timeProvider,
-		dbPool,
+		TestDBPool,
 		crypto,
 		mailClient,
 		tmplManager,
@@ -1113,7 +1108,10 @@ func TestServiceDeleteCodeSpaceEditorSuccess(t *testing.T) {
 	err := svc.DeleteCodeSpace(ctx, codeSpace.Name)
 	require.NoError(t, err)
 
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	_, err = repo.GetCodeSpace(context.Background(), dbConn, codeSpace.ID)
 	require.Error(t, err)
 	require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsReturned)
@@ -1163,7 +1161,6 @@ func TestServiceDeleteCodeSpaceFails(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -1174,7 +1171,7 @@ func TestServiceDeleteCodeSpaceFails(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,
@@ -1446,7 +1443,6 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -1457,7 +1453,7 @@ func TestServiceRunCodeSpaceSuccess(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,
@@ -1667,7 +1663,6 @@ func TestServiceListCodeSpaceUsers(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -1678,7 +1673,7 @@ func TestServiceListCodeSpaceUsers(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,
@@ -2037,7 +2032,6 @@ func TestServiceInviteCodeSpaceUserSuccess(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 			mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
 			tmplManager := templatesmanager.NewManager()
@@ -2048,7 +2042,7 @@ func TestServiceInviteCodeSpaceUserSuccess(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,
@@ -2302,7 +2296,6 @@ func TestServiceRemoveCodeSpaceUserAuthorCanRemoveViewer(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -2313,7 +2306,7 @@ func TestServiceRemoveCodeSpaceUserAuthorCanRemoveViewer(t *testing.T) {
 	svc := code.NewService(
 		cfg,
 		timeProvider,
-		dbPool,
+		TestDBPool,
 		crypto,
 		mailClient,
 		tmplManager,
@@ -2326,7 +2319,10 @@ func TestServiceRemoveCodeSpaceUserAuthorCanRemoveViewer(t *testing.T) {
 	err := svc.RemoveCodeSpaceUser(ctx, codeSpace.Name, viewer.UUID)
 	require.NoError(t, err)
 
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	users, _, err := repo.ListUsersWithCodeSpaceAccess(context.Background(), dbConn, codeSpace.ID)
 	require.NoError(t, err)
 
@@ -2370,7 +2366,6 @@ func TestServiceRemoveCodeSpaceUserEditorCanRemoveViewer(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -2381,7 +2376,7 @@ func TestServiceRemoveCodeSpaceUserEditorCanRemoveViewer(t *testing.T) {
 	svc := code.NewService(
 		cfg,
 		timeProvider,
-		dbPool,
+		TestDBPool,
 		crypto,
 		mailClient,
 		tmplManager,
@@ -2394,7 +2389,10 @@ func TestServiceRemoveCodeSpaceUserEditorCanRemoveViewer(t *testing.T) {
 	err := svc.RemoveCodeSpaceUser(ctx, codeSpace.Name, viewer.UUID)
 	require.NoError(t, err)
 
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	users, _, err := repo.ListUsersWithCodeSpaceAccess(context.Background(), dbConn, codeSpace.ID)
 	require.NoError(t, err)
 
@@ -2456,7 +2454,6 @@ func TestServiceRemoveCodeSpaceUserSelfRemoval(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -2467,7 +2464,7 @@ func TestServiceRemoveCodeSpaceUserSelfRemoval(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,
@@ -2480,7 +2477,10 @@ func TestServiceRemoveCodeSpaceUserSelfRemoval(t *testing.T) {
 			err := svc.RemoveCodeSpaceUser(ctx, codeSpace.Name, testcase.codeSpaceUserUUID)
 			require.NoError(t, err)
 
-			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+			dbConn, err := TestDBPool.Acquire(context.Background())
+			require.NoError(t, err)
+			defer dbConn.Release()
+
 			users, _, err := repo.ListUsersWithCodeSpaceAccess(context.Background(), dbConn, codeSpace.ID)
 			require.NoError(t, err)
 
@@ -2611,7 +2611,6 @@ func TestServiceRemoveCodeSpaceUserFails(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -2622,7 +2621,7 @@ func TestServiceRemoveCodeSpaceUserFails(t *testing.T) {
 			svc := code.NewService(
 				cfg,
 				timeProvider,
-				dbPool,
+				TestDBPool,
 				crypto,
 				mailClient,
 				tmplManager,

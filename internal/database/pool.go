@@ -41,7 +41,7 @@ func NewPool(
 	username string,
 	password string,
 	databaseName string,
-) (Pool, error) {
+) (*pool, error) {
 	connString := fmt.Sprintf(
 		ConnectionFormatString,
 		username,

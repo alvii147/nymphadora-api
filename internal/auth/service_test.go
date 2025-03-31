@@ -43,12 +43,11 @@ func TestServiceSendUserActivationMailSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
-	dbPool := databasemocks.NewMockPool(ctrl)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	tmplManager := templatesmanager.NewManager()
 	repo := authmocks.NewMockRepository(ctrl)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	activationURL := "http://localhost:3000/signup/activate/4ct1v4t10njwt"
 	err := svc.SendUserActivationMail(
@@ -151,13 +150,12 @@ func TestServiceCreateUserSuccess(t *testing.T) {
 	cfg := testkitinternal.MustCreateConfig()
 
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
 	tmplManager := templatesmanager.NewManager()
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	email := testkit.GenerateFakeEmail()
 	password := testkit.GenerateFakePassword()
@@ -228,7 +226,6 @@ func TestServiceCreateUserEmailExists(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -251,7 +248,7 @@ func TestServiceCreateUserEmailExists(t *testing.T) {
 		Return(user, errutils.ErrDatabaseUniqueViolation).
 		Times(1)
 
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	var wg sync.WaitGroup
 	_, err := svc.CreateUser(
@@ -462,14 +459,17 @@ func TestServiceActivateUserSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	timeProvider.AddDate(0, 0, 1)
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	jti := uuid.NewString()
 	token, err := jwt.NewWithClaims(
@@ -572,7 +572,6 @@ func TestServiceActivateUserError(t *testing.T) {
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
-			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
 			dbConn.
 				EXPECT().
@@ -591,6 +590,8 @@ func TestServiceActivateUserError(t *testing.T) {
 				Return(testcase.repoErr).
 				MaxTimes(1)
 
+			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+
 			err = svc.ActivateUser(context.Background(), testcase.token)
 			require.ErrorIs(t, err, testcase.wantErr)
 		})
@@ -608,13 +609,12 @@ func TestServiceGetAuthenticatedUserSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, user.UUID)
 	fetchedUser, err := svc.GetAuthenticatedUser(ctx)
@@ -745,14 +745,13 @@ func TestServiceUpdateAuthenticatedUserSuccess(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			timeProvider.AddDate(0, 0, 1)
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := auth.NewRepository(timeProvider)
 
-			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+			svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 			user, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
 				u.FirstName = startingFirstName
@@ -857,13 +856,12 @@ func TestServiceCreateJWTSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	accessToken, refreshToken, err := svc.CreateJWT(context.Background(), user.Email, password)
 	require.NoError(t, err)
@@ -934,13 +932,12 @@ func TestServiceCreateJWTIncorrectCredentials(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := auth.NewRepository(timeProvider)
-			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+			svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 			_, _, err := svc.CreateJWT(context.Background(), testcase.email, testcase.password)
 			require.ErrorIs(t, err, errutils.ErrInvalidCredentials)
@@ -1383,13 +1380,12 @@ func TestServiceCreateAPIKeySuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, user.UUID)
 	name := "My API Key"
@@ -1549,13 +1545,12 @@ func TestServiceListAPIKeysSuccess(t *testing.T) {
 	cfg := testkitinternal.MustCreateConfig()
 
 	ctrl := gomock.NewController(t)
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, user1.UUID)
 	fetchedUser1Keys, err := svc.ListAPIKeys(ctx)
@@ -1676,13 +1671,12 @@ func TestServiceFindAPIKeySuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	foundAPIKey, err := svc.FindAPIKey(context.Background(), rawKey)
 	require.NoError(t, err)
@@ -1783,13 +1777,12 @@ func TestServiceUpdateAPIKeySuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider.AddDate(0, 0, 1)
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	testcases := map[string]struct {
 		startingName      string
@@ -1970,17 +1963,20 @@ func TestServiceDeleteAPIKeySuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+	svc := auth.NewService(cfg, timeProvider, TestDBPool, logger, crypto, mailClient, tmplManager, repo)
 
 	ctx := context.WithValue(context.Background(), auth.AuthContextKeyUserUUID, user.UUID)
-	err := svc.DeleteAPIKey(ctx, apiKey.ID)
+	err = svc.DeleteAPIKey(ctx, apiKey.ID)
 	require.NoError(t, err)
 
 	apiKeys, err := repo.ListAPIKeysByUserUUID(context.Background(), dbConn, user.UUID)

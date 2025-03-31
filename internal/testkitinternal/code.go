@@ -14,6 +14,7 @@ import (
 	"github.com/alvii147/nymphadora-api/pkg/piston"
 	"github.com/alvii147/nymphadora-api/pkg/testkit"
 	"github.com/alvii147/nymphadora-api/pkg/timekeeper"
+	"github.com/stretchr/testify/require"
 )
 
 // MustCreateCodeSpace creates and returns a new code space for a given author UUID and panics on error.
@@ -24,7 +25,10 @@ func MustCreateCodeSpace(
 ) (*code.CodeSpace, *code.CodeSpaceAccess) {
 	cfg := MustCreateConfig()
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := RequireNewDatabasePool(t)
+
+	dbPool := MustNewDatabasePool()
+	defer dbPool.Close()
+
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclient.NewConsoleClient("support@nymphadora.com", timeProvider, os.Stdout)
 	tmplManager := templatesmanager.NewManager()
@@ -63,8 +67,13 @@ func MustCreateCodeSpaceAccess(
 	accessLevel code.CodeSpaceAccessLevel,
 ) *code.CodeSpaceAccess {
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := RequireNewDatabasePool(t)
-	dbConn := RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbPool := MustNewDatabasePool()
+	defer dbPool.Close()
+
+	dbConn, err := dbPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	repo := code.NewRepository(timeProvider)
 
 	codeSpaceAccess := &code.CodeSpaceAccess{
@@ -73,7 +82,7 @@ func MustCreateCodeSpaceAccess(
 		Level:       accessLevel,
 	}
 
-	codeSpaceAccess, err := repo.CreateOrUpdateCodeSpaceAccess(context.Background(), dbConn, codeSpaceAccess)
+	codeSpaceAccess, err = repo.CreateOrUpdateCodeSpaceAccess(context.Background(), dbConn, codeSpaceAccess)
 	if err != nil {
 		panic(errutils.FormatError(err))
 	}

@@ -21,8 +21,10 @@ func TestRepositoryCreateCodeSpaceSuccess(t *testing.T) {
 		u.IsActive = true
 	})
 
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := code.NewRepository(timeProvider)
 
@@ -58,8 +60,10 @@ func TestRepositoryCreateCodeSpaceDuplicateName(t *testing.T) {
 
 	existingCodeSpace, _ := testkitinternal.MustCreateCodeSpace(t, existingCodeSpaceAuthor.UUID, "python")
 
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := code.NewRepository(timeProvider)
 
@@ -70,7 +74,7 @@ func TestRepositoryCreateCodeSpaceDuplicateName(t *testing.T) {
 		Contents:   "print('hello')",
 	}
 
-	_, err := repo.CreateCodeSpace(context.Background(), dbConn, codeSpace)
+	_, err = repo.CreateCodeSpace(context.Background(), dbConn, codeSpace)
 	require.Error(t, err)
 }
 
@@ -107,7 +111,6 @@ func TestRepositoryListCodeSpaces(t *testing.T) {
 		u.IsActive = true
 	})
 
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := code.NewRepository(timeProvider)
 
@@ -144,7 +147,9 @@ func TestRepositoryListCodeSpaces(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+			dbConn, err := TestDBPool.Acquire(context.Background())
+			require.NoError(t, err)
+			defer dbConn.Release()
 
 			codeSpaces, codeSpaceAccesses, err := repo.ListCodeSpaces(context.Background(), dbConn, testcase.userUUID)
 			require.NoError(t, err)
@@ -209,7 +214,6 @@ func TestRepositoryGetCodeSpaceWithAccessByName(t *testing.T) {
 	})
 
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	repo := code.NewRepository(timeProvider)
 
 	testcases := map[string]struct {
@@ -272,7 +276,9 @@ func TestRepositoryGetCodeSpaceWithAccessByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+			dbConn, err := TestDBPool.Acquire(context.Background())
+			require.NoError(t, err)
+			defer dbConn.Release()
 
 			codeSpace, codeSpaceAccess, err := repo.GetCodeSpaceWithAccessByName(
 				context.Background(),
@@ -318,8 +324,10 @@ func TestRepositoryUpdateCodeSpaceSuccess(t *testing.T) {
 	tomorrow := now.AddDate(0, 0, 1)
 	timeProvider.SetTime(tomorrow)
 
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	repo := code.NewRepository(timeProvider)
 
 	updatedContents := "print('FizzBuzz')"
@@ -345,7 +353,6 @@ func TestRepositoryUpdateCodeSpaceError(t *testing.T) {
 	codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, "python")
 
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	repo := code.NewRepository(timeProvider)
 	updatedContents := "print('FizzBuzz')"
 
@@ -367,9 +374,11 @@ func TestRepositoryUpdateCodeSpaceError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+			dbConn, err := TestDBPool.Acquire(context.Background())
+			require.NoError(t, err)
+			defer dbConn.Release()
 
-			_, err := repo.UpdateCodeSpace(context.Background(), dbConn, testcase.codeSpaceID, testcase.updatedContents)
+			_, err = repo.UpdateCodeSpace(context.Background(), dbConn, testcase.codeSpaceID, testcase.updatedContents)
 			require.Error(t, err)
 			require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsAffected)
 		})
@@ -384,12 +393,14 @@ func TestRepositoryDeleteCodeSpaceSuccess(t *testing.T) {
 	})
 	codeSpace, _ := testkitinternal.MustCreateCodeSpace(t, author.UUID, "python")
 
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := code.NewRepository(timeProvider)
 
-	err := repo.DeleteCodeSpace(
+	err = repo.DeleteCodeSpace(
 		context.Background(),
 		dbConn,
 		codeSpace.ID,
@@ -404,12 +415,14 @@ func TestRepositoryDeleteCodeSpaceSuccess(t *testing.T) {
 func TestRepositoryDeleteCodeSpaceNoRowsAffected(t *testing.T) {
 	t.Parallel()
 
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := code.NewRepository(timeProvider)
 
-	err := repo.DeleteCodeSpace(
+	err = repo.DeleteCodeSpace(
 		context.Background(),
 		dbConn,
 		314159265,
@@ -451,7 +464,6 @@ func TestRepositoryCreateOrUpdateCodeSpaceAccess(t *testing.T) {
 	})
 
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	repo := code.NewRepository(timeProvider)
 
 	testcases := map[string]struct {
@@ -496,8 +508,11 @@ func TestRepositoryCreateOrUpdateCodeSpaceAccess(t *testing.T) {
 				Level:       testcase.accessLevel,
 			}
 
-			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
-			codeSpaceAccess, err := repo.CreateOrUpdateCodeSpaceAccess(context.Background(), dbConn, codeSpaceAccess)
+			dbConn, err := TestDBPool.Acquire(context.Background())
+			require.NoError(t, err)
+			defer dbConn.Release()
+
+			codeSpaceAccess, err = repo.CreateOrUpdateCodeSpaceAccess(context.Background(), dbConn, codeSpaceAccess)
 
 			if testcase.wantErr {
 				require.Error(t, err)
@@ -544,8 +559,10 @@ func TestRepositoryListUsersWithCodeSpaceAccess(t *testing.T) {
 	)
 
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	repo := code.NewRepository(timeProvider)
 
 	users, codeSpaceAccesses, err := repo.ListUsersWithCodeSpaceAccess(context.Background(), dbConn, codeSpace.ID)
@@ -590,11 +607,13 @@ func TestRepositoryDeleteCodeSpaceAccessSuccess(t *testing.T) {
 	)
 
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	repo := code.NewRepository(timeProvider)
 
-	err := repo.DeleteCodeSpaceAccess(context.Background(), dbConn, invitee.UUID, codeSpace.ID)
+	err = repo.DeleteCodeSpaceAccess(context.Background(), dbConn, invitee.UUID, codeSpace.ID)
 	require.NoError(t, err)
 
 	_, _, err = repo.GetCodeSpaceWithAccessByName(context.Background(), dbConn, invitee.UUID, codeSpace.Name)
@@ -606,11 +625,13 @@ func TestRepositoryDeleteCodeSpaceAccessNoRowsAffected(t *testing.T) {
 	t.Parallel()
 
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireNewDatabasePool(t)
-	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbConn, err := TestDBPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	repo := code.NewRepository(timeProvider)
 
-	err := repo.DeleteCodeSpaceAccess(context.Background(), dbConn, uuid.NewString(), 314159265)
+	err = repo.DeleteCodeSpaceAccess(context.Background(), dbConn, uuid.NewString(), 314159265)
 	require.Error(t, err)
 	require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsAffected)
 }

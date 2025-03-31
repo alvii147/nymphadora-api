@@ -12,6 +12,7 @@ import (
 	"github.com/alvii147/nymphadora-api/pkg/timekeeper"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 // MustHashPassword hashes a given password and panics on error.
@@ -31,8 +32,13 @@ func MustHashPassword(password string) string {
 
 // MustCreateUser creates and returns a new user and panics on error.
 func MustCreateUser(t testkit.TestingT, modifier func(u *auth.User)) (*auth.User, string) {
-	dbPool := RequireNewDatabasePool(t)
-	dbConn := RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbPool := MustNewDatabasePool()
+	defer dbPool.Close()
+
+	dbConn, err := dbPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -52,7 +58,7 @@ func MustCreateUser(t testkit.TestingT, modifier func(u *auth.User)) (*auth.User
 		modifier(user)
 	}
 
-	user, err := repo.CreateUser(context.Background(), dbConn, user)
+	user, err = repo.CreateUser(context.Background(), dbConn, user)
 	if err != nil {
 		panic(errutils.FormatError(err))
 	}
@@ -102,8 +108,13 @@ func MustCreateUserAuthJWTs(userUUID string) (string, string) {
 
 // MustCreateUserAPIKey creates and returns a new API key for a given user UUID and panics on error.
 func MustCreateUserAPIKey(t testkit.TestingT, userUUID string, modifier func(k *auth.APIKey)) (*auth.APIKey, string) {
-	dbPool := RequireNewDatabasePool(t)
-	dbConn := RequireNewDatabaseConn(t, dbPool, context.Background())
+	dbPool := MustNewDatabasePool()
+	defer dbPool.Close()
+
+	dbConn, err := dbPool.Acquire(context.Background())
+	require.NoError(t, err)
+	defer dbConn.Release()
+
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -125,7 +136,7 @@ func MustCreateUserAPIKey(t testkit.TestingT, userUUID string, modifier func(k *
 		modifier(apiKey)
 	}
 
-	apiKey, err := repo.CreateAPIKey(context.Background(), dbConn, apiKey)
+	apiKey, err = repo.CreateAPIKey(context.Background(), dbConn, apiKey)
 	if err != nil {
 		panic(errutils.FormatError(err))
 	}

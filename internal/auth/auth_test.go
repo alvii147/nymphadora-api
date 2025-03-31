@@ -2,12 +2,26 @@ package auth_test
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/alvii147/nymphadora-api/internal/auth"
+	"github.com/alvii147/nymphadora-api/internal/database"
+	"github.com/alvii147/nymphadora-api/internal/testkitinternal"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
+
+var TestDBPool database.Pool
+
+func TestMain(m *testing.M) {
+	TestDBPool = testkitinternal.MustNewDatabasePool()
+
+	code := m.Run()
+
+	TestDBPool.Close()
+	os.Exit(code)
+}
 
 func TestGetUserUUIDFromContext(t *testing.T) {
 	t.Parallel()
