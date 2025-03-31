@@ -1,0 +1,17 @@
+package database
+
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+// Querier executes SQL statements on the database.
+//
+//go:generate mockgen -package=databasemocks -source=$GOFILE -destination=./mocks/querier.go
+type Querier interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (commandTag pgconn.CommandTag, err error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}

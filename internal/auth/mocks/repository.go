@@ -15,8 +15,8 @@ import (
 	time "time"
 
 	auth "github.com/alvii147/nymphadora-api/internal/auth"
+	database "github.com/alvii147/nymphadora-api/internal/database"
 	jsonutils "github.com/alvii147/nymphadora-api/pkg/jsonutils"
-	pgxpool "github.com/jackc/pgx/v5/pgxpool"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -45,149 +45,149 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // ActivateUserByUUID mocks base method.
-func (m *MockRepository) ActivateUserByUUID(ctx context.Context, dbConn *pgxpool.Conn, userUUID string) error {
+func (m *MockRepository) ActivateUserByUUID(ctx context.Context, querier database.Querier, userUUID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ActivateUserByUUID", ctx, dbConn, userUUID)
+	ret := m.ctrl.Call(m, "ActivateUserByUUID", ctx, querier, userUUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ActivateUserByUUID indicates an expected call of ActivateUserByUUID.
-func (mr *MockRepositoryMockRecorder) ActivateUserByUUID(ctx, dbConn, userUUID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ActivateUserByUUID(ctx, querier, userUUID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ActivateUserByUUID", reflect.TypeOf((*MockRepository)(nil).ActivateUserByUUID), ctx, dbConn, userUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ActivateUserByUUID", reflect.TypeOf((*MockRepository)(nil).ActivateUserByUUID), ctx, querier, userUUID)
 }
 
 // CreateAPIKey mocks base method.
-func (m *MockRepository) CreateAPIKey(ctx context.Context, dbConn *pgxpool.Conn, apiKey *auth.APIKey) (*auth.APIKey, error) {
+func (m *MockRepository) CreateAPIKey(ctx context.Context, querier database.Querier, apiKey *auth.APIKey) (*auth.APIKey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAPIKey", ctx, dbConn, apiKey)
+	ret := m.ctrl.Call(m, "CreateAPIKey", ctx, querier, apiKey)
 	ret0, _ := ret[0].(*auth.APIKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateAPIKey indicates an expected call of CreateAPIKey.
-func (mr *MockRepositoryMockRecorder) CreateAPIKey(ctx, dbConn, apiKey any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CreateAPIKey(ctx, querier, apiKey any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAPIKey", reflect.TypeOf((*MockRepository)(nil).CreateAPIKey), ctx, dbConn, apiKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAPIKey", reflect.TypeOf((*MockRepository)(nil).CreateAPIKey), ctx, querier, apiKey)
 }
 
 // CreateUser mocks base method.
-func (m *MockRepository) CreateUser(ctx context.Context, dbConn *pgxpool.Conn, user *auth.User) (*auth.User, error) {
+func (m *MockRepository) CreateUser(ctx context.Context, querier database.Querier, user *auth.User) (*auth.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUser", ctx, dbConn, user)
+	ret := m.ctrl.Call(m, "CreateUser", ctx, querier, user)
 	ret0, _ := ret[0].(*auth.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateUser indicates an expected call of CreateUser.
-func (mr *MockRepositoryMockRecorder) CreateUser(ctx, dbConn, user any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CreateUser(ctx, querier, user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockRepository)(nil).CreateUser), ctx, dbConn, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockRepository)(nil).CreateUser), ctx, querier, user)
 }
 
 // DeleteAPIKey mocks base method.
-func (m *MockRepository) DeleteAPIKey(ctx context.Context, dbConn *pgxpool.Conn, userUUID string, apiKeyID int64) error {
+func (m *MockRepository) DeleteAPIKey(ctx context.Context, querier database.Querier, userUUID string, apiKeyID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAPIKey", ctx, dbConn, userUUID, apiKeyID)
+	ret := m.ctrl.Call(m, "DeleteAPIKey", ctx, querier, userUUID, apiKeyID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteAPIKey indicates an expected call of DeleteAPIKey.
-func (mr *MockRepositoryMockRecorder) DeleteAPIKey(ctx, dbConn, userUUID, apiKeyID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) DeleteAPIKey(ctx, querier, userUUID, apiKeyID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAPIKey", reflect.TypeOf((*MockRepository)(nil).DeleteAPIKey), ctx, dbConn, userUUID, apiKeyID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAPIKey", reflect.TypeOf((*MockRepository)(nil).DeleteAPIKey), ctx, querier, userUUID, apiKeyID)
 }
 
 // GetUserByEmail mocks base method.
-func (m *MockRepository) GetUserByEmail(ctx context.Context, dbConn *pgxpool.Conn, email string) (*auth.User, error) {
+func (m *MockRepository) GetUserByEmail(ctx context.Context, querier database.Querier, email string) (*auth.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, dbConn, email)
+	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, querier, email)
 	ret0, _ := ret[0].(*auth.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserByEmail indicates an expected call of GetUserByEmail.
-func (mr *MockRepositoryMockRecorder) GetUserByEmail(ctx, dbConn, email any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetUserByEmail(ctx, querier, email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockRepository)(nil).GetUserByEmail), ctx, dbConn, email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockRepository)(nil).GetUserByEmail), ctx, querier, email)
 }
 
 // GetUserByUUID mocks base method.
-func (m *MockRepository) GetUserByUUID(ctx context.Context, dbConn *pgxpool.Conn, userUUID string) (*auth.User, error) {
+func (m *MockRepository) GetUserByUUID(ctx context.Context, querier database.Querier, userUUID string) (*auth.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByUUID", ctx, dbConn, userUUID)
+	ret := m.ctrl.Call(m, "GetUserByUUID", ctx, querier, userUUID)
 	ret0, _ := ret[0].(*auth.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserByUUID indicates an expected call of GetUserByUUID.
-func (mr *MockRepositoryMockRecorder) GetUserByUUID(ctx, dbConn, userUUID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetUserByUUID(ctx, querier, userUUID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUUID", reflect.TypeOf((*MockRepository)(nil).GetUserByUUID), ctx, dbConn, userUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUUID", reflect.TypeOf((*MockRepository)(nil).GetUserByUUID), ctx, querier, userUUID)
 }
 
 // ListAPIKeysByUserUUID mocks base method.
-func (m *MockRepository) ListAPIKeysByUserUUID(ctx context.Context, dbConn *pgxpool.Conn, userUUID string) ([]*auth.APIKey, error) {
+func (m *MockRepository) ListAPIKeysByUserUUID(ctx context.Context, querier database.Querier, userUUID string) ([]*auth.APIKey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAPIKeysByUserUUID", ctx, dbConn, userUUID)
+	ret := m.ctrl.Call(m, "ListAPIKeysByUserUUID", ctx, querier, userUUID)
 	ret0, _ := ret[0].([]*auth.APIKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListAPIKeysByUserUUID indicates an expected call of ListAPIKeysByUserUUID.
-func (mr *MockRepositoryMockRecorder) ListAPIKeysByUserUUID(ctx, dbConn, userUUID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ListAPIKeysByUserUUID(ctx, querier, userUUID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAPIKeysByUserUUID", reflect.TypeOf((*MockRepository)(nil).ListAPIKeysByUserUUID), ctx, dbConn, userUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAPIKeysByUserUUID", reflect.TypeOf((*MockRepository)(nil).ListAPIKeysByUserUUID), ctx, querier, userUUID)
 }
 
 // ListActiveAPIKeysByPrefix mocks base method.
-func (m *MockRepository) ListActiveAPIKeysByPrefix(ctx context.Context, dbConn *pgxpool.Conn, prefix string) ([]*auth.APIKey, error) {
+func (m *MockRepository) ListActiveAPIKeysByPrefix(ctx context.Context, querier database.Querier, prefix string) ([]*auth.APIKey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListActiveAPIKeysByPrefix", ctx, dbConn, prefix)
+	ret := m.ctrl.Call(m, "ListActiveAPIKeysByPrefix", ctx, querier, prefix)
 	ret0, _ := ret[0].([]*auth.APIKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListActiveAPIKeysByPrefix indicates an expected call of ListActiveAPIKeysByPrefix.
-func (mr *MockRepositoryMockRecorder) ListActiveAPIKeysByPrefix(ctx, dbConn, prefix any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ListActiveAPIKeysByPrefix(ctx, querier, prefix any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListActiveAPIKeysByPrefix", reflect.TypeOf((*MockRepository)(nil).ListActiveAPIKeysByPrefix), ctx, dbConn, prefix)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListActiveAPIKeysByPrefix", reflect.TypeOf((*MockRepository)(nil).ListActiveAPIKeysByPrefix), ctx, querier, prefix)
 }
 
 // UpdateAPIKey mocks base method.
-func (m *MockRepository) UpdateAPIKey(ctx context.Context, dbConn *pgxpool.Conn, userUUID string, apiKeyID int64, name *string, expiresAt jsonutils.Optional[time.Time]) (*auth.APIKey, error) {
+func (m *MockRepository) UpdateAPIKey(ctx context.Context, querier database.Querier, userUUID string, apiKeyID int64, name *string, expiresAt jsonutils.Optional[time.Time]) (*auth.APIKey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAPIKey", ctx, dbConn, userUUID, apiKeyID, name, expiresAt)
+	ret := m.ctrl.Call(m, "UpdateAPIKey", ctx, querier, userUUID, apiKeyID, name, expiresAt)
 	ret0, _ := ret[0].(*auth.APIKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateAPIKey indicates an expected call of UpdateAPIKey.
-func (mr *MockRepositoryMockRecorder) UpdateAPIKey(ctx, dbConn, userUUID, apiKeyID, name, expiresAt any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) UpdateAPIKey(ctx, querier, userUUID, apiKeyID, name, expiresAt any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAPIKey", reflect.TypeOf((*MockRepository)(nil).UpdateAPIKey), ctx, dbConn, userUUID, apiKeyID, name, expiresAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAPIKey", reflect.TypeOf((*MockRepository)(nil).UpdateAPIKey), ctx, querier, userUUID, apiKeyID, name, expiresAt)
 }
 
 // UpdateUser mocks base method.
-func (m *MockRepository) UpdateUser(ctx context.Context, dbConn *pgxpool.Conn, userUUID string, firstName, lastName *string) (*auth.User, error) {
+func (m *MockRepository) UpdateUser(ctx context.Context, querier database.Querier, userUUID string, firstName, lastName *string) (*auth.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", ctx, dbConn, userUUID, firstName, lastName)
+	ret := m.ctrl.Call(m, "UpdateUser", ctx, querier, userUUID, firstName, lastName)
 	ret0, _ := ret[0].(*auth.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockRepositoryMockRecorder) UpdateUser(ctx, dbConn, userUUID, firstName, lastName any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) UpdateUser(ctx, querier, userUUID, firstName, lastName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockRepository)(nil).UpdateUser), ctx, dbConn, userUUID, firstName, lastName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockRepository)(nil).UpdateUser), ctx, querier, userUUID, firstName, lastName)
 }

@@ -5,10 +5,10 @@ import (
 	"errors"
 
 	"github.com/alvii147/nymphadora-api/internal/auth"
+	"github.com/alvii147/nymphadora-api/internal/database"
 	"github.com/alvii147/nymphadora-api/pkg/errutils"
 	"github.com/alvii147/nymphadora-api/pkg/timekeeper"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Repository is used to access, modify, and delete code space data.
@@ -17,49 +17,49 @@ import (
 type Repository interface {
 	CreateCodeSpace(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		codeSpace *CodeSpace,
 	) (*CodeSpace, error)
 	ListCodeSpaces(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 	) ([]*CodeSpace, []*CodeSpaceAccess, error)
 	GetCodeSpace(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		codeSpaceID int64,
 	) (*CodeSpace, error)
 	GetCodeSpaceWithAccessByName(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 		name string,
 	) (*CodeSpace, *CodeSpaceAccess, error)
 	UpdateCodeSpace(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		codeSpaceID int64,
 		contents *string,
 	) (*CodeSpace, error)
 	DeleteCodeSpace(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		codeSpaceID int64,
 	) error
 	CreateOrUpdateCodeSpaceAccess(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		codeSpaceAccess *CodeSpaceAccess,
 	) (*CodeSpaceAccess, error)
 	ListUsersWithCodeSpaceAccess(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		codeSpaceID int64,
 	) ([]*auth.User, []*CodeSpaceAccess, error)
 	DeleteCodeSpaceAccess(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 		codeSpaceID int64,
 	) error
@@ -80,7 +80,7 @@ func NewRepository(timeProvider timekeeper.Provider) *repository {
 // CreateCodeSpace creates a new code space.
 func (repo *repository) CreateCodeSpace(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	codeSpace *CodeSpace,
 ) (*CodeSpace, error) {
 	now := repo.timeProvider.Now()
@@ -113,7 +113,7 @@ RETURNING
 	updated_at;
 	`
 
-	err := dbConn.QueryRow(
+	err := querier.QueryRow(
 		ctx,
 		q,
 		codeSpace.AuthorUUID,
@@ -132,7 +132,7 @@ RETURNING
 		&createdCodeSpace.UpdatedAt,
 	)
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return createdCodeSpace, nil
@@ -141,7 +141,7 @@ RETURNING
 // ListCodeSpaces lists code spaces accessible by a given user.
 func (repo *repository) ListCodeSpaces(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 ) ([]*CodeSpace, []*CodeSpaceAccess, error) {
 	codeSpaces := make([]*CodeSpace, 0)
@@ -173,9 +173,9 @@ WHERE
 	AND a.level >= $2;
 	`
 
-	rows, err := dbConn.Query(ctx, q, userUUID, CodeSpaceAccessLevelReadOnly)
+	rows, err := querier.Query(ctx, q, userUUID, CodeSpaceAccessLevelReadOnly)
 	if err != nil {
-		return nil, nil, errutils.FormatError(err, "dbConn.Query failed")
+		return nil, nil, errutils.FormatError(err, "querier.Query failed")
 	}
 	defer rows.Close()
 
@@ -212,7 +212,7 @@ WHERE
 // GetCodeSpace gets a given code space.
 func (repo *repository) GetCodeSpace(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	codeSpaceID int64,
 ) (*CodeSpace, error) {
 	codeSpace := &CodeSpace{}
@@ -232,7 +232,7 @@ WHERE
 	c.id = $1;
 	`
 
-	err := dbConn.QueryRow(ctx, q, codeSpaceID).Scan(
+	err := querier.QueryRow(ctx, q, codeSpaceID).Scan(
 		&codeSpace.ID,
 		&codeSpace.AuthorUUID,
 		&codeSpace.Name,
@@ -243,11 +243,11 @@ WHERE
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsReturned, "dbConn.Scan failed")
+		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsReturned, "querier.Scan failed")
 	}
 
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return codeSpace, nil
@@ -256,7 +256,7 @@ WHERE
 // GetCodeSpaceWithAccessByName gets a given code space and its corresponding code space access for a given user.
 func (repo *repository) GetCodeSpaceWithAccessByName(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 	name string,
 ) (*CodeSpace, *CodeSpaceAccess, error) {
@@ -290,7 +290,7 @@ WHERE
 	AND a.level >= $3;
 	`
 
-	err := dbConn.QueryRow(ctx, q, name, userUUID, CodeSpaceAccessLevelReadOnly).Scan(
+	err := querier.QueryRow(ctx, q, name, userUUID, CodeSpaceAccessLevelReadOnly).Scan(
 		&codeSpace.ID,
 		&codeSpace.AuthorUUID,
 		&codeSpace.Name,
@@ -307,11 +307,11 @@ WHERE
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, nil, errutils.FormatError(errutils.ErrDatabaseNoRowsReturned, "dbConn.Scan failed")
+		return nil, nil, errutils.FormatError(errutils.ErrDatabaseNoRowsReturned, "querier.Scan failed")
 	}
 
 	if err != nil {
-		return nil, nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return codeSpace, codeSpaceAccess, nil
@@ -320,7 +320,7 @@ WHERE
 // UpdateCodeSpace updates a code space.
 func (repo *repository) UpdateCodeSpace(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	codeSpaceID int64,
 	contents *string,
 ) (*CodeSpace, error) {
@@ -348,7 +348,7 @@ RETURNING
 	updated_at;
 	`
 
-	err := dbConn.QueryRow(
+	err := querier.QueryRow(
 		ctx,
 		q,
 		contents,
@@ -365,11 +365,11 @@ RETURNING
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsAffected, "dbConn.Scan failed")
+		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsAffected, "querier.Scan failed")
 	}
 
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return updatedCodeSpace, nil
@@ -379,7 +379,7 @@ RETURNING
 // If no code space is found, error is returned.
 func (repo *repository) DeleteCodeSpace(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	codeSpaceID int64,
 ) error {
 	q := `
@@ -389,9 +389,9 @@ WHERE
 	c.id = $1;
 	`
 
-	ct, err := dbConn.Exec(ctx, q, codeSpaceID)
+	ct, err := querier.Exec(ctx, q, codeSpaceID)
 	if err != nil {
-		return errutils.FormatError(err, "dbConn.Exec failed")
+		return errutils.FormatError(err, "querier.Exec failed")
 	}
 
 	if ct.RowsAffected() == 0 {
@@ -404,7 +404,7 @@ WHERE
 // CreateOrUpdateCodeSpaceAccess creates a new code space access or updates the existing one.
 func (repo *repository) CreateOrUpdateCodeSpaceAccess(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	codeSpaceAccess *CodeSpaceAccess,
 ) (*CodeSpaceAccess, error) {
 	now := repo.timeProvider.Now()
@@ -438,7 +438,7 @@ RETURNING
 	updated_at;
 	`
 
-	err := dbConn.QueryRow(
+	err := querier.QueryRow(
 		ctx,
 		q,
 		codeSpaceAccess.UserUUID,
@@ -455,7 +455,7 @@ RETURNING
 		&createdCodeSpaceAccess.UpdatedAt,
 	)
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return createdCodeSpaceAccess, nil
@@ -464,7 +464,7 @@ RETURNING
 // ListUsersWithCodeSpaceAccess lists all users with access to a given code space.
 func (repo *repository) ListUsersWithCodeSpaceAccess(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	codeSpaceID int64,
 ) ([]*auth.User, []*CodeSpaceAccess, error) {
 	users := make([]*auth.User, 0)
@@ -498,14 +498,14 @@ WHERE
 	AND a.level >= $2;
 	`
 
-	rows, err := dbConn.Query(
+	rows, err := querier.Query(
 		ctx,
 		q,
 		codeSpaceID,
 		CodeSpaceAccessLevelReadOnly,
 	)
 	if err != nil {
-		return nil, nil, errutils.FormatError(err, "dbConn.Query failed")
+		return nil, nil, errutils.FormatError(err, "querier.Query failed")
 	}
 	defer rows.Close()
 
@@ -545,7 +545,7 @@ WHERE
 // If no code space access is found, error is returned.
 func (repo *repository) DeleteCodeSpaceAccess(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 	codeSpaceID int64,
 ) error {
@@ -557,9 +557,9 @@ WHERE
 	AND a.user_uuid = $2;
 	`
 
-	ct, err := dbConn.Exec(ctx, q, codeSpaceID, userUUID)
+	ct, err := querier.Exec(ctx, q, codeSpaceID, userUUID)
 	if err != nil {
-		return errutils.FormatError(err, "dbConn.Exec failed")
+		return errutils.FormatError(err, "querier.Exec failed")
 	}
 
 	if ct.RowsAffected() == 0 {

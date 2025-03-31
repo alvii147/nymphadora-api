@@ -19,8 +19,8 @@ import (
 func TestRepositoryCreateUserSuccess(t *testing.T) {
 	t.Parallel()
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -50,8 +50,8 @@ func TestRepositoryCreateUserSuccess(t *testing.T) {
 func TestRepositoryCreateUserDuplicateEmail(t *testing.T) {
 	t.Parallel()
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -90,8 +90,8 @@ func TestRepositoryActivateUserByUUIDSuccess(t *testing.T) {
 		u.IsActive = false
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -117,7 +117,7 @@ func TestRepositoryActivateUserByUUIDError(t *testing.T) {
 		u.IsActive = true
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -136,7 +136,7 @@ func TestRepositoryActivateUserByUUIDError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 			err := repo.ActivateUserByUUID(context.Background(), dbConn, testcase.userUUID)
 			require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsAffected)
 		})
@@ -150,8 +150,8 @@ func TestRepositoryGetUserByEmailSuccess(t *testing.T) {
 		u.IsActive = true
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -176,7 +176,7 @@ func TestRepositoryGetUserByEmailError(t *testing.T) {
 		u.IsActive = false
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -195,7 +195,7 @@ func TestRepositoryGetUserByEmailError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 			_, err := repo.GetUserByEmail(context.Background(), dbConn, testcase.email)
 			require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsReturned)
 		})
@@ -209,8 +209,8 @@ func TestRepositoryGetUserByUUIDSuccess(t *testing.T) {
 		u.IsActive = true
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -235,7 +235,7 @@ func TestRepositoryGetUserByUUIDError(t *testing.T) {
 		u.IsActive = false
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -254,7 +254,7 @@ func TestRepositoryGetUserByUUIDError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 			_, err := repo.GetUserByUUID(context.Background(), dbConn, testcase.userUUID)
 			require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsReturned)
 		})
@@ -269,7 +269,7 @@ func TestRepositoryUpdateUserSuccess(t *testing.T) {
 	updatedFirstName := "Updatedfirstname"
 	updatedLastName := "Updatedlastname"
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	timeProvider.AddDate(0, 0, 1)
 	repo := auth.NewRepository(timeProvider)
@@ -310,7 +310,7 @@ func TestRepositoryUpdateUserSuccess(t *testing.T) {
 				u.IsActive = true
 			})
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 
 			updatedUser, err := repo.UpdateUser(context.Background(), dbConn, user.UUID, testcase.firstName, testcase.lastName)
 			require.NoError(t, err)
@@ -342,7 +342,7 @@ func TestRepositoryUpdateUserError(t *testing.T) {
 		u.IsActive = false
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -372,7 +372,7 @@ func TestRepositoryUpdateUserError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 
 			_, err := repo.UpdateUser(context.Background(), dbConn, testcase.userUUID, testcase.firstName, testcase.lastName)
 			require.ErrorIs(t, err, errutils.ErrDatabaseNoRowsAffected)
@@ -387,8 +387,8 @@ func TestRepositoryCreateAPIKeySuccess(t *testing.T) {
 		u.IsActive = true
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -423,7 +423,7 @@ func TestRepositoryCreateAPIKeyError(t *testing.T) {
 		k.Name = "My API Key"
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -456,7 +456,7 @@ func TestRepositoryCreateAPIKeyError(t *testing.T) {
 				ExpiresAt: nil,
 			}
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 
 			_, err := repo.CreateAPIKey(context.Background(), dbConn, apiKey)
 			require.ErrorIs(t, err, testcase.wantErr)
@@ -479,8 +479,8 @@ func TestRepositoryListAPIKeysByUserUUIDSuccess(t *testing.T) {
 		return wantAPIKeys[i].Prefix < wantAPIKeys[j].Prefix
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -513,8 +513,8 @@ func TestRepositoryListAPIKeysByUserUUIDInactiveUser(t *testing.T) {
 
 	testkitinternal.MustCreateUserAPIKey(t, user.UUID, nil)
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -532,8 +532,8 @@ func TestRepositoryListActiveAPIKeysByPrefixSuccess(t *testing.T) {
 
 	apiKey, _ := testkitinternal.MustCreateUserAPIKey(t, user.UUID, nil)
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -570,7 +570,7 @@ func TestRepositoryListActiveAPIKeysByPrefixEmpty(t *testing.T) {
 
 	validAPIKey, _ := testkitinternal.MustCreateUserAPIKey(t, inactiveUser.UUID, nil)
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	repo := auth.NewRepository(timeProvider)
 
 	testcases := map[string]struct {
@@ -588,7 +588,7 @@ func TestRepositoryListActiveAPIKeysByPrefixEmpty(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 			apiKeys, err := repo.ListActiveAPIKeysByPrefix(context.Background(), dbConn, testcase.apiKey.Prefix)
 			require.NoError(t, err)
 			require.Empty(t, apiKeys)
@@ -606,7 +606,7 @@ func TestRepositoryUpdateAPIKeySuccess(t *testing.T) {
 	nextMonth := timeProvider.Now().AddDate(0, 1, 0)
 	nextYear := timeProvider.Now().AddDate(1, 0, 0)
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider.AddDate(0, 0, 1)
 	repo := auth.NewRepository(timeProvider)
 
@@ -676,7 +676,7 @@ func TestRepositoryUpdateAPIKeySuccess(t *testing.T) {
 				k.ExpiresAt = testcase.startingExpiresAt
 			})
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 
 			updatedAPIKey, err := repo.UpdateAPIKey(
 				context.Background(),
@@ -734,7 +734,7 @@ func TestRepositoryUpdateAPIKeyError(t *testing.T) {
 		k.ExpiresAt = &nextMonth
 	})
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	repo := auth.NewRepository(timeProvider)
 
 	testcases := map[string]struct {
@@ -775,7 +775,7 @@ func TestRepositoryUpdateAPIKeyError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 
 			_, err := repo.UpdateAPIKey(
 				context.Background(),
@@ -799,8 +799,8 @@ func TestRepositoryDeleteAPIKeySuccess(t *testing.T) {
 
 	apiKey, _ := testkitinternal.MustCreateUserAPIKey(t, user.UUID, nil)
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -830,7 +830,7 @@ func TestRepositoryDeleteAPIKeyError(t *testing.T) {
 
 	inactiveUserAPIKey, _ := testkitinternal.MustCreateUserAPIKey(t, inactiveUser.UUID, nil)
 
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -852,7 +852,7 @@ func TestRepositoryDeleteAPIKeyError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+			dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 			err := repo.DeleteAPIKey(
 				context.Background(),
 				dbConn,

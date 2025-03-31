@@ -15,7 +15,7 @@ import (
 
 	auth "github.com/alvii147/nymphadora-api/internal/auth"
 	code "github.com/alvii147/nymphadora-api/internal/code"
-	pgxpool "github.com/jackc/pgx/v5/pgxpool"
+	database "github.com/alvii147/nymphadora-api/internal/database"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -44,82 +44,82 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // CreateCodeSpace mocks base method.
-func (m *MockRepository) CreateCodeSpace(ctx context.Context, dbConn *pgxpool.Conn, codeSpace *code.CodeSpace) (*code.CodeSpace, error) {
+func (m *MockRepository) CreateCodeSpace(ctx context.Context, querier database.Querier, codeSpace *code.CodeSpace) (*code.CodeSpace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCodeSpace", ctx, dbConn, codeSpace)
+	ret := m.ctrl.Call(m, "CreateCodeSpace", ctx, querier, codeSpace)
 	ret0, _ := ret[0].(*code.CodeSpace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateCodeSpace indicates an expected call of CreateCodeSpace.
-func (mr *MockRepositoryMockRecorder) CreateCodeSpace(ctx, dbConn, codeSpace any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CreateCodeSpace(ctx, querier, codeSpace any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCodeSpace", reflect.TypeOf((*MockRepository)(nil).CreateCodeSpace), ctx, dbConn, codeSpace)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCodeSpace", reflect.TypeOf((*MockRepository)(nil).CreateCodeSpace), ctx, querier, codeSpace)
 }
 
 // CreateOrUpdateCodeSpaceAccess mocks base method.
-func (m *MockRepository) CreateOrUpdateCodeSpaceAccess(ctx context.Context, dbConn *pgxpool.Conn, codeSpaceAccess *code.CodeSpaceAccess) (*code.CodeSpaceAccess, error) {
+func (m *MockRepository) CreateOrUpdateCodeSpaceAccess(ctx context.Context, querier database.Querier, codeSpaceAccess *code.CodeSpaceAccess) (*code.CodeSpaceAccess, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateOrUpdateCodeSpaceAccess", ctx, dbConn, codeSpaceAccess)
+	ret := m.ctrl.Call(m, "CreateOrUpdateCodeSpaceAccess", ctx, querier, codeSpaceAccess)
 	ret0, _ := ret[0].(*code.CodeSpaceAccess)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateOrUpdateCodeSpaceAccess indicates an expected call of CreateOrUpdateCodeSpaceAccess.
-func (mr *MockRepositoryMockRecorder) CreateOrUpdateCodeSpaceAccess(ctx, dbConn, codeSpaceAccess any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CreateOrUpdateCodeSpaceAccess(ctx, querier, codeSpaceAccess any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateCodeSpaceAccess", reflect.TypeOf((*MockRepository)(nil).CreateOrUpdateCodeSpaceAccess), ctx, dbConn, codeSpaceAccess)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateCodeSpaceAccess", reflect.TypeOf((*MockRepository)(nil).CreateOrUpdateCodeSpaceAccess), ctx, querier, codeSpaceAccess)
 }
 
 // DeleteCodeSpace mocks base method.
-func (m *MockRepository) DeleteCodeSpace(ctx context.Context, dbConn *pgxpool.Conn, codeSpaceID int64) error {
+func (m *MockRepository) DeleteCodeSpace(ctx context.Context, querier database.Querier, codeSpaceID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCodeSpace", ctx, dbConn, codeSpaceID)
+	ret := m.ctrl.Call(m, "DeleteCodeSpace", ctx, querier, codeSpaceID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCodeSpace indicates an expected call of DeleteCodeSpace.
-func (mr *MockRepositoryMockRecorder) DeleteCodeSpace(ctx, dbConn, codeSpaceID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) DeleteCodeSpace(ctx, querier, codeSpaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeSpace", reflect.TypeOf((*MockRepository)(nil).DeleteCodeSpace), ctx, dbConn, codeSpaceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeSpace", reflect.TypeOf((*MockRepository)(nil).DeleteCodeSpace), ctx, querier, codeSpaceID)
 }
 
 // DeleteCodeSpaceAccess mocks base method.
-func (m *MockRepository) DeleteCodeSpaceAccess(ctx context.Context, dbConn *pgxpool.Conn, userUUID string, codeSpaceID int64) error {
+func (m *MockRepository) DeleteCodeSpaceAccess(ctx context.Context, querier database.Querier, userUUID string, codeSpaceID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCodeSpaceAccess", ctx, dbConn, userUUID, codeSpaceID)
+	ret := m.ctrl.Call(m, "DeleteCodeSpaceAccess", ctx, querier, userUUID, codeSpaceID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCodeSpaceAccess indicates an expected call of DeleteCodeSpaceAccess.
-func (mr *MockRepositoryMockRecorder) DeleteCodeSpaceAccess(ctx, dbConn, userUUID, codeSpaceID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) DeleteCodeSpaceAccess(ctx, querier, userUUID, codeSpaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeSpaceAccess", reflect.TypeOf((*MockRepository)(nil).DeleteCodeSpaceAccess), ctx, dbConn, userUUID, codeSpaceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeSpaceAccess", reflect.TypeOf((*MockRepository)(nil).DeleteCodeSpaceAccess), ctx, querier, userUUID, codeSpaceID)
 }
 
 // GetCodeSpace mocks base method.
-func (m *MockRepository) GetCodeSpace(ctx context.Context, dbConn *pgxpool.Conn, codeSpaceID int64) (*code.CodeSpace, error) {
+func (m *MockRepository) GetCodeSpace(ctx context.Context, querier database.Querier, codeSpaceID int64) (*code.CodeSpace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCodeSpace", ctx, dbConn, codeSpaceID)
+	ret := m.ctrl.Call(m, "GetCodeSpace", ctx, querier, codeSpaceID)
 	ret0, _ := ret[0].(*code.CodeSpace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCodeSpace indicates an expected call of GetCodeSpace.
-func (mr *MockRepositoryMockRecorder) GetCodeSpace(ctx, dbConn, codeSpaceID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetCodeSpace(ctx, querier, codeSpaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeSpace", reflect.TypeOf((*MockRepository)(nil).GetCodeSpace), ctx, dbConn, codeSpaceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeSpace", reflect.TypeOf((*MockRepository)(nil).GetCodeSpace), ctx, querier, codeSpaceID)
 }
 
 // GetCodeSpaceWithAccessByName mocks base method.
-func (m *MockRepository) GetCodeSpaceWithAccessByName(ctx context.Context, dbConn *pgxpool.Conn, userUUID, name string) (*code.CodeSpace, *code.CodeSpaceAccess, error) {
+func (m *MockRepository) GetCodeSpaceWithAccessByName(ctx context.Context, querier database.Querier, userUUID, name string) (*code.CodeSpace, *code.CodeSpaceAccess, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCodeSpaceWithAccessByName", ctx, dbConn, userUUID, name)
+	ret := m.ctrl.Call(m, "GetCodeSpaceWithAccessByName", ctx, querier, userUUID, name)
 	ret0, _ := ret[0].(*code.CodeSpace)
 	ret1, _ := ret[1].(*code.CodeSpaceAccess)
 	ret2, _ := ret[2].(error)
@@ -127,15 +127,15 @@ func (m *MockRepository) GetCodeSpaceWithAccessByName(ctx context.Context, dbCon
 }
 
 // GetCodeSpaceWithAccessByName indicates an expected call of GetCodeSpaceWithAccessByName.
-func (mr *MockRepositoryMockRecorder) GetCodeSpaceWithAccessByName(ctx, dbConn, userUUID, name any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetCodeSpaceWithAccessByName(ctx, querier, userUUID, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeSpaceWithAccessByName", reflect.TypeOf((*MockRepository)(nil).GetCodeSpaceWithAccessByName), ctx, dbConn, userUUID, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeSpaceWithAccessByName", reflect.TypeOf((*MockRepository)(nil).GetCodeSpaceWithAccessByName), ctx, querier, userUUID, name)
 }
 
 // ListCodeSpaces mocks base method.
-func (m *MockRepository) ListCodeSpaces(ctx context.Context, dbConn *pgxpool.Conn, userUUID string) ([]*code.CodeSpace, []*code.CodeSpaceAccess, error) {
+func (m *MockRepository) ListCodeSpaces(ctx context.Context, querier database.Querier, userUUID string) ([]*code.CodeSpace, []*code.CodeSpaceAccess, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListCodeSpaces", ctx, dbConn, userUUID)
+	ret := m.ctrl.Call(m, "ListCodeSpaces", ctx, querier, userUUID)
 	ret0, _ := ret[0].([]*code.CodeSpace)
 	ret1, _ := ret[1].([]*code.CodeSpaceAccess)
 	ret2, _ := ret[2].(error)
@@ -143,15 +143,15 @@ func (m *MockRepository) ListCodeSpaces(ctx context.Context, dbConn *pgxpool.Con
 }
 
 // ListCodeSpaces indicates an expected call of ListCodeSpaces.
-func (mr *MockRepositoryMockRecorder) ListCodeSpaces(ctx, dbConn, userUUID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ListCodeSpaces(ctx, querier, userUUID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCodeSpaces", reflect.TypeOf((*MockRepository)(nil).ListCodeSpaces), ctx, dbConn, userUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCodeSpaces", reflect.TypeOf((*MockRepository)(nil).ListCodeSpaces), ctx, querier, userUUID)
 }
 
 // ListUsersWithCodeSpaceAccess mocks base method.
-func (m *MockRepository) ListUsersWithCodeSpaceAccess(ctx context.Context, dbConn *pgxpool.Conn, codeSpaceID int64) ([]*auth.User, []*code.CodeSpaceAccess, error) {
+func (m *MockRepository) ListUsersWithCodeSpaceAccess(ctx context.Context, querier database.Querier, codeSpaceID int64) ([]*auth.User, []*code.CodeSpaceAccess, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListUsersWithCodeSpaceAccess", ctx, dbConn, codeSpaceID)
+	ret := m.ctrl.Call(m, "ListUsersWithCodeSpaceAccess", ctx, querier, codeSpaceID)
 	ret0, _ := ret[0].([]*auth.User)
 	ret1, _ := ret[1].([]*code.CodeSpaceAccess)
 	ret2, _ := ret[2].(error)
@@ -159,22 +159,22 @@ func (m *MockRepository) ListUsersWithCodeSpaceAccess(ctx context.Context, dbCon
 }
 
 // ListUsersWithCodeSpaceAccess indicates an expected call of ListUsersWithCodeSpaceAccess.
-func (mr *MockRepositoryMockRecorder) ListUsersWithCodeSpaceAccess(ctx, dbConn, codeSpaceID any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ListUsersWithCodeSpaceAccess(ctx, querier, codeSpaceID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsersWithCodeSpaceAccess", reflect.TypeOf((*MockRepository)(nil).ListUsersWithCodeSpaceAccess), ctx, dbConn, codeSpaceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsersWithCodeSpaceAccess", reflect.TypeOf((*MockRepository)(nil).ListUsersWithCodeSpaceAccess), ctx, querier, codeSpaceID)
 }
 
 // UpdateCodeSpace mocks base method.
-func (m *MockRepository) UpdateCodeSpace(ctx context.Context, dbConn *pgxpool.Conn, codeSpaceID int64, contents *string) (*code.CodeSpace, error) {
+func (m *MockRepository) UpdateCodeSpace(ctx context.Context, querier database.Querier, codeSpaceID int64, contents *string) (*code.CodeSpace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateCodeSpace", ctx, dbConn, codeSpaceID, contents)
+	ret := m.ctrl.Call(m, "UpdateCodeSpace", ctx, querier, codeSpaceID, contents)
 	ret0, _ := ret[0].(*code.CodeSpace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateCodeSpace indicates an expected call of UpdateCodeSpace.
-func (mr *MockRepositoryMockRecorder) UpdateCodeSpace(ctx, dbConn, codeSpaceID, contents any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) UpdateCodeSpace(ctx, querier, codeSpaceID, contents any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCodeSpace", reflect.TypeOf((*MockRepository)(nil).UpdateCodeSpace), ctx, dbConn, codeSpaceID, contents)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCodeSpace", reflect.TypeOf((*MockRepository)(nil).UpdateCodeSpace), ctx, querier, codeSpaceID, contents)
 }

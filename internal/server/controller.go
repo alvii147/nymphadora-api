@@ -20,7 +20,6 @@ import (
 	"github.com/alvii147/nymphadora-api/pkg/mailclient"
 	"github.com/alvii147/nymphadora-api/pkg/piston"
 	"github.com/alvii147/nymphadora-api/pkg/timekeeper"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // HTTPServerTimeout is the timeout set for the HTTP server.
@@ -31,7 +30,7 @@ type Controller struct {
 	config       *config.Config
 	timeProvider timekeeper.Provider
 	router       httputils.Router
-	dbPool       *pgxpool.Pool
+	dbPool       database.Pool
 	logger       logging.Logger
 	crypto       cryptocore.Crypto
 	mailClient   mailclient.Client
@@ -55,7 +54,7 @@ func NewController() (*Controller, error) {
 		httputils.WithRouterCORSOrigin(&cfg.FrontendBaseURL),
 		httputils.WithRouterRootHeader(httputils.HTTPHeaderContentType, "application/json"),
 	)
-	dbPool, err := database.CreatePool(
+	dbPool, err := database.NewPool(
 		cfg.PostgresHostname,
 		cfg.PostgresPort,
 		cfg.PostgresUsername,

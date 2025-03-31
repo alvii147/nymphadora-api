@@ -5,12 +5,12 @@ import (
 	"errors"
 	"time"
 
+	"github.com/alvii147/nymphadora-api/internal/database"
 	"github.com/alvii147/nymphadora-api/pkg/errutils"
 	"github.com/alvii147/nymphadora-api/pkg/jsonutils"
 	"github.com/alvii147/nymphadora-api/pkg/timekeeper"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Repository is used to access and update auth data.
@@ -19,49 +19,49 @@ import (
 type Repository interface {
 	CreateUser(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		user *User,
 	) (*User, error)
 	ActivateUserByUUID(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 	) error
 	GetUserByEmail(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		email string,
 	) (*User, error)
 	GetUserByUUID(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 	) (*User, error)
 	UpdateUser(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 		firstName *string,
 		lastName *string,
 	) (*User, error)
 	CreateAPIKey(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		apiKey *APIKey,
 	) (*APIKey, error)
 	ListAPIKeysByUserUUID(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 	) ([]*APIKey, error)
 	ListActiveAPIKeysByPrefix(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		prefix string,
 	) ([]*APIKey, error)
 	UpdateAPIKey(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 		apiKeyID int64,
 		name *string,
@@ -69,7 +69,7 @@ type Repository interface {
 	) (*APIKey, error)
 	DeleteAPIKey(
 		ctx context.Context,
-		dbConn *pgxpool.Conn,
+		querier database.Querier,
 		userUUID string,
 		apiKeyID int64,
 	) error
@@ -90,7 +90,7 @@ func NewRepository(timeProvider timekeeper.Provider) *repository {
 // CreateUser creates a new user.
 func (repo *repository) CreateUser(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	user *User,
 ) (*User, error) {
 	now := repo.timeProvider.Now()
@@ -131,7 +131,7 @@ RETURNING
 	updated_at;
 	`
 
-	err := dbConn.QueryRow(
+	err := querier.QueryRow(
 		ctx,
 		q,
 		user.UUID,
@@ -159,11 +159,11 @@ RETURNING
 	ok := errors.As(err, &pgErr)
 
 	if ok && pgErr != nil && pgErr.Code == errutils.DatabaseErrCodeUniqueViolation {
-		return nil, errutils.FormatError(errutils.ErrDatabaseUniqueViolation, "dbConn.Scan failed")
+		return nil, errutils.FormatError(errutils.ErrDatabaseUniqueViolation, "querier.Scan failed")
 	}
 
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return createdUser, nil
@@ -173,7 +173,7 @@ RETURNING
 // If no user is affected, error is returned.
 func (repo *repository) ActivateUserByUUID(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 ) error {
 	q := `
@@ -187,9 +187,9 @@ WHERE
 	AND is_active = FALSE;
 	`
 
-	ct, err := dbConn.Exec(ctx, q, repo.timeProvider.Now(), userUUID)
+	ct, err := querier.Exec(ctx, q, repo.timeProvider.Now(), userUUID)
 	if err != nil {
-		return errutils.FormatError(err, "dbConn.Exec failed")
+		return errutils.FormatError(err, "querier.Exec failed")
 	}
 
 	if ct.RowsAffected() == 0 {
@@ -203,7 +203,7 @@ WHERE
 // If no user is found, error is returned.
 func (repo *repository) GetUserByEmail(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	email string,
 ) (*User, error) {
 	user := &User{}
@@ -226,7 +226,7 @@ WHERE
 	AND is_active = TRUE;
 	`
 
-	err := dbConn.QueryRow(ctx, q, email).Scan(
+	err := querier.QueryRow(ctx, q, email).Scan(
 		&user.UUID,
 		&user.Email,
 		&user.Password,
@@ -239,11 +239,11 @@ WHERE
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsReturned, "dbConn.Scan failed")
+		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsReturned, "querier.Scan failed")
 	}
 
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return user, nil
@@ -253,7 +253,7 @@ WHERE
 // If no user is found, error is returned.
 func (repo *repository) GetUserByUUID(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 ) (*User, error) {
 	user := &User{}
@@ -276,7 +276,7 @@ WHERE
 	AND is_active = TRUE;
 	`
 
-	err := dbConn.QueryRow(ctx, q, userUUID).Scan(
+	err := querier.QueryRow(ctx, q, userUUID).Scan(
 		&user.UUID,
 		&user.Email,
 		&user.Password,
@@ -289,11 +289,11 @@ WHERE
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsReturned, "dbConn.Scan failed")
+		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsReturned, "querier.Scan failed")
 	}
 
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return user, nil
@@ -302,7 +302,7 @@ WHERE
 // UpdateUser updates a user.
 func (repo *repository) UpdateUser(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 	firstName *string,
 	lastName *string,
@@ -335,7 +335,7 @@ RETURNING
 	updated_at;
 	`
 
-	err := dbConn.QueryRow(
+	err := querier.QueryRow(
 		ctx,
 		q,
 		firstName,
@@ -355,11 +355,11 @@ RETURNING
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsAffected, "dbConn.Scan failed")
+		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsAffected, "querier.Scan failed")
 	}
 
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return updatedUser, nil
@@ -368,7 +368,7 @@ RETURNING
 // CreateAPIKey creates an API key.
 func (repo *repository) CreateAPIKey(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	apiKey *APIKey,
 ) (*APIKey, error) {
 	now := repo.timeProvider.Now()
@@ -403,7 +403,7 @@ RETURNING
 	created_at,
 	updated_at;
 	`
-	err := dbConn.QueryRow(
+	err := querier.QueryRow(
 		ctx,
 		q,
 		apiKey.UserUUID,
@@ -430,14 +430,14 @@ RETURNING
 	if ok && pgErr != nil {
 		switch pgErr.Code {
 		case errutils.DatabaseErrCodeForeignKeyViolation:
-			return nil, errutils.FormatError(errutils.ErrDatabaseForeignKeyConstraintViolation, "dbConn.Scan failed")
+			return nil, errutils.FormatError(errutils.ErrDatabaseForeignKeyConstraintViolation, "querier.Scan failed")
 		case errutils.DatabaseErrCodeUniqueViolation:
-			return nil, errutils.FormatError(errutils.ErrDatabaseUniqueViolation, "dbConn.Scan failed")
+			return nil, errutils.FormatError(errutils.ErrDatabaseUniqueViolation, "querier.Scan failed")
 		}
 	}
 
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return createdAPIKey, nil
@@ -446,7 +446,7 @@ RETURNING
 // ListAPIKeysByUserUUID fetches API keys under a given user UUID.
 func (repo *repository) ListAPIKeysByUserUUID(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 ) ([]*APIKey, error) {
 	apiKeys := make([]*APIKey, 0)
@@ -472,9 +472,9 @@ WHERE
 	AND u.is_active = TRUE;
 	`
 
-	rows, err := dbConn.Query(ctx, q, userUUID)
+	rows, err := querier.Query(ctx, q, userUUID)
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Query failed")
+		return nil, errutils.FormatError(err, "querier.Query failed")
 	}
 	defer rows.Close()
 
@@ -503,7 +503,7 @@ WHERE
 // ListActiveAPIKeysByPrefix fetches API keys with a given prefix.
 func (repo *repository) ListActiveAPIKeysByPrefix(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	prefix string,
 ) ([]*APIKey, error) {
 	apiKeys := make([]*APIKey, 0)
@@ -530,9 +530,9 @@ WHERE
 	AND u.is_active = TRUE;
 	`
 
-	rows, err := dbConn.Query(ctx, q, prefix)
+	rows, err := querier.Query(ctx, q, prefix)
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Query failed")
+		return nil, errutils.FormatError(err, "querier.Query failed")
 	}
 	defer rows.Close()
 
@@ -562,7 +562,7 @@ WHERE
 // If no API key is affected, error is returned.
 func (repo *repository) UpdateAPIKey(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 	apiKeyID int64,
 	name *string,
@@ -599,7 +599,7 @@ RETURNING
 	k.updated_at;
 	`
 
-	err := dbConn.QueryRow(
+	err := querier.QueryRow(
 		ctx,
 		q,
 		name,
@@ -620,11 +620,11 @@ RETURNING
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsAffected, "dbConn.Scan failed")
+		return nil, errutils.FormatError(errutils.ErrDatabaseNoRowsAffected, "querier.Scan failed")
 	}
 
 	if err != nil {
-		return nil, errutils.FormatError(err, "dbConn.Scan failed")
+		return nil, errutils.FormatError(err, "querier.Scan failed")
 	}
 
 	return updatedAPIKey, nil
@@ -634,7 +634,7 @@ RETURNING
 // If no API key is found, error is returned.
 func (repo *repository) DeleteAPIKey(
 	ctx context.Context,
-	dbConn *pgxpool.Conn,
+	querier database.Querier,
 	userUUID string,
 	apiKeyID int64,
 ) error {
@@ -650,9 +650,9 @@ WHERE
 	AND u.is_active = TRUE;
 	`
 
-	ct, err := dbConn.Exec(ctx, q, apiKeyID, userUUID)
+	ct, err := querier.Exec(ctx, q, apiKeyID, userUUID)
 	if err != nil {
-		return errutils.FormatError(err, "dbConn.Exec failed")
+		return errutils.FormatError(err, "querier.Exec failed")
 	}
 
 	if ct.RowsAffected() == 0 {

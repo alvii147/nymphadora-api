@@ -68,6 +68,10 @@ test-ci:
 	grep -v "/mocks/" $(COVERAGE_FILE) > $(COVERAGE_FILE).tmp
 	mv $(COVERAGE_FILE).tmp $(COVERAGE_FILE)
 
+.PHONY: test-cleanup
+test-cleanup:
+	$(POSTGRES_EXEC) --command="DROP DATABASE $(POSTGRES_TEST_DATABASE_NAME);"
+
 .PHONY: cover
 cover:
 	go tool cover -func $(COVERAGE_FILE)

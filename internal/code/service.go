@@ -8,6 +8,7 @@ import (
 
 	"github.com/alvii147/nymphadora-api/internal/auth"
 	"github.com/alvii147/nymphadora-api/internal/config"
+	"github.com/alvii147/nymphadora-api/internal/database"
 	"github.com/alvii147/nymphadora-api/internal/templatesmanager"
 	"github.com/alvii147/nymphadora-api/pkg/api"
 	"github.com/alvii147/nymphadora-api/pkg/cryptocore"
@@ -16,7 +17,6 @@ import (
 	"github.com/alvii147/nymphadora-api/pkg/piston"
 	"github.com/alvii147/nymphadora-api/pkg/random"
 	"github.com/alvii147/nymphadora-api/pkg/timekeeper"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // FrontendCodeSpaceInvitationRoute is the frontend route for code space invitation.
@@ -81,7 +81,7 @@ type Service interface {
 type service struct {
 	config         *config.Config
 	timeProvider   timekeeper.Provider
-	dbPool         *pgxpool.Pool
+	dbPool         database.Pool
 	crypto         cryptocore.Crypto
 	mailClient     mailclient.Client
 	tmplManager    templatesmanager.Manager
@@ -94,7 +94,7 @@ type service struct {
 func NewService(
 	config *config.Config,
 	timeProvider timekeeper.Provider,
-	dbPool *pgxpool.Pool,
+	dbPool database.Pool,
 	crypto cryptocore.Crypto,
 	mailClient mailclient.Client,
 	tmplManager templatesmanager.Manager,
@@ -195,7 +195,13 @@ func (svc *service) CreateCodeSpace(
 		Contents:   string(templateFileBytes),
 	}
 
-	codeSpace, err = svc.repository.CreateCodeSpace(ctx, dbConn, codeSpace)
+	dbTx, err := dbConn.Begin(ctx)
+	if err != nil {
+		return nil, nil, errutils.FormatError(err, "dbConn.Begin failed")
+	}
+	defer dbTx.Rollback(ctx)
+
+	codeSpace, err = svc.repository.CreateCodeSpace(ctx, dbTx, codeSpace)
 	if err != nil {
 		return nil, nil, errutils.FormatError(err)
 	}
@@ -206,9 +212,14 @@ func (svc *service) CreateCodeSpace(
 		Level:       CodeSpaceAccessLevelReadWrite,
 	}
 
-	codeSpaceAccess, err = svc.repository.CreateOrUpdateCodeSpaceAccess(ctx, dbConn, codeSpaceAccess)
+	codeSpaceAccess, err = svc.repository.CreateOrUpdateCodeSpaceAccess(ctx, dbTx, codeSpaceAccess)
 	if err != nil {
 		return nil, nil, errutils.FormatError(err)
+	}
+
+	err = dbTx.Commit(ctx)
+	if err != nil {
+		return nil, nil, errutils.FormatError(err, "dbTx.Commit failed")
 	}
 
 	return codeSpace, codeSpaceAccess, nil

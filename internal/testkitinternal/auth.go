@@ -31,8 +31,8 @@ func MustHashPassword(password string) string {
 
 // MustCreateUser creates and returns a new user and panics on error.
 func MustCreateUser(t testkit.TestingT, modifier func(u *auth.User)) (*auth.User, string) {
-	dbPool := RequireCreateDatabasePool(t)
-	dbConn := RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := RequireNewDatabasePool(t)
+	dbConn := RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 
@@ -102,8 +102,8 @@ func MustCreateUserAuthJWTs(userUUID string) (string, string) {
 
 // MustCreateUserAPIKey creates and returns a new API key for a given user UUID and panics on error.
 func MustCreateUserAPIKey(t testkit.TestingT, userUUID string, modifier func(k *auth.APIKey)) (*auth.APIKey, string) {
-	dbPool := RequireCreateDatabasePool(t)
-	dbConn := RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := RequireNewDatabasePool(t)
+	dbConn := RequireNewDatabaseConn(t, dbPool, context.Background())
 	timeProvider := timekeeper.NewFrozenProvider()
 	repo := auth.NewRepository(timeProvider)
 

@@ -24,7 +24,7 @@ func MustCreateCodeSpace(
 ) (*code.CodeSpace, *code.CodeSpaceAccess) {
 	cfg := MustCreateConfig()
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := RequireCreateDatabasePool(t)
+	dbPool := RequireNewDatabasePool(t)
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclient.NewConsoleClient("support@nymphadora.com", timeProvider, os.Stdout)
 	tmplManager := templatesmanager.NewManager()
@@ -63,8 +63,8 @@ func MustCreateCodeSpaceAccess(
 	accessLevel code.CodeSpaceAccessLevel,
 ) *code.CodeSpaceAccess {
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := RequireCreateDatabasePool(t)
-	dbConn := RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := RequireNewDatabasePool(t)
+	dbConn := RequireNewDatabaseConn(t, dbPool, context.Background())
 	repo := code.NewRepository(timeProvider)
 
 	codeSpaceAccess := &code.CodeSpaceAccess{

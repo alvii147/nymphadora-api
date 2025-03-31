@@ -15,6 +15,7 @@ import (
 
 	"github.com/alvii147/nymphadora-api/internal/auth"
 	authmocks "github.com/alvii147/nymphadora-api/internal/auth/mocks"
+	databasemocks "github.com/alvii147/nymphadora-api/internal/database/mocks"
 	"github.com/alvii147/nymphadora-api/internal/templatesmanager"
 	templatesmanagermocks "github.com/alvii147/nymphadora-api/internal/templatesmanager/mocks"
 	"github.com/alvii147/nymphadora-api/internal/testkitinternal"
@@ -42,7 +43,7 @@ func TestServiceSendUserActivationMailSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := databasemocks.NewMockPool(ctrl)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	tmplManager := templatesmanager.NewManager()
@@ -106,7 +107,7 @@ func TestServiceSendUserActivationMailError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
 			mailClient := mailclientmocks.NewMockClient(ctrl)
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
@@ -150,7 +151,7 @@ func TestServiceCreateUserSuccess(t *testing.T) {
 	cfg := testkitinternal.MustCreateConfig()
 
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := testkit.NewInMemMailClient("support@nymphadora.com", timeProvider)
@@ -227,7 +228,7 @@ func TestServiceCreateUserEmailExists(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -297,7 +298,8 @@ func TestServiceCreateUserError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -313,6 +315,17 @@ func TestServiceCreateUserError(t *testing.T) {
 				IsActive:    false,
 				IsSuperUser: false,
 			}
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			crypto.
 				EXPECT().
@@ -354,7 +367,8 @@ func TestServiceCreateUserEmailSendFails(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	mailClient := mailclientmocks.NewMockClient(ctrl)
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := databasemocks.NewMockPool(ctrl)
+	dbConn := databasemocks.NewMockConn(ctrl)
 	_, bufErr, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	tmplManager := templatesmanager.NewManager()
@@ -369,6 +383,17 @@ func TestServiceCreateUserEmailSendFails(t *testing.T) {
 		IsActive:    false,
 		IsSuperUser: false,
 	}
+
+	dbConn.
+		EXPECT().
+		Release().
+		MaxTimes(1)
+
+	dbPool.
+		EXPECT().
+		Acquire(gomock.Any()).
+		Return(dbConn, nil).
+		MaxTimes(1)
 
 	crypto.
 		EXPECT().
@@ -437,8 +462,8 @@ func TestServiceActivateUserSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
 	timeProvider.AddDate(0, 0, 1)
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -540,13 +565,25 @@ func TestServiceActivateUserError(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
 			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			repo.
 				EXPECT().
@@ -571,7 +608,7 @@ func TestServiceGetAuthenticatedUserSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -629,12 +666,24 @@ func TestServiceGetAuthenticatedUserError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			repo.
 				EXPECT().
@@ -656,23 +705,12 @@ func TestServiceGetAuthenticatedUserError(t *testing.T) {
 func TestServiceUpdateAuthenticatedUserSuccess(t *testing.T) {
 	t.Parallel()
 
+	cfg := testkitinternal.MustCreateConfig()
+
 	startingFirstName := "startingFirstName"
 	startingLastName := "startingLastName"
 	updatedFirstName := "updatedFirstName"
 	updatedLastName := "updatedLastName"
-
-	cfg := testkitinternal.MustCreateConfig()
-
-	ctrl := gomock.NewController(t)
-	timeProvider := timekeeper.NewFrozenProvider()
-	timeProvider.AddDate(0, 0, 1)
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	_, _, logger := testkit.CreateInMemLogger()
-	crypto := cryptocoremocks.NewMockCrypto(ctrl)
-	mailClient := mailclientmocks.NewMockClient(ctrl)
-	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
-	repo := auth.NewRepository(timeProvider)
-	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
 	testcases := map[string]struct {
 		firstName     *string
@@ -703,6 +741,18 @@ func TestServiceUpdateAuthenticatedUserSuccess(t *testing.T) {
 	for name, testcase := range testcases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			timeProvider := timekeeper.NewFrozenProvider()
+			timeProvider.AddDate(0, 0, 1)
+			dbPool := testkitinternal.RequireNewDatabasePool(t)
+			_, _, logger := testkit.CreateInMemLogger()
+			crypto := cryptocoremocks.NewMockCrypto(ctrl)
+			mailClient := mailclientmocks.NewMockClient(ctrl)
+			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
+			repo := auth.NewRepository(timeProvider)
+
+			svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
 			user, _ := testkitinternal.MustCreateUser(t, func(u *auth.User) {
 				u.FirstName = startingFirstName
@@ -760,12 +810,24 @@ func TestServiceUpdateAuthenticatedUserError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			repo.
 				EXPECT().
@@ -795,7 +857,7 @@ func TestServiceCreateJWTSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -872,7 +934,7 @@ func TestServiceCreateJWTIncorrectCredentials(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := testkitinternal.RequireNewDatabasePool(t)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -956,7 +1018,8 @@ func TestServiceCreateJWTError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -969,6 +1032,17 @@ func TestServiceCreateJWTError(t *testing.T) {
 				Password: hashedPassword,
 				IsActive: testcase.userIsActive,
 			}
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			repo.
 				EXPECT().
@@ -1009,12 +1083,13 @@ func TestServiceRefreshJWTSuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := databasemocks.NewMockPool(ctrl)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := authmocks.NewMockRepository(ctrl)
+
 	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
 	userUUID := uuid.NewString()
@@ -1050,12 +1125,13 @@ func TestServiceRefreshJWTValidateError(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := databasemocks.NewMockPool(ctrl)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := authmocks.NewMockRepository(ctrl)
+
 	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
 	userUUID := uuid.NewString()
@@ -1127,7 +1203,7 @@ func TestServiceRefreshJWTError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -1174,12 +1250,13 @@ func TestServiceValidateJWT(t *testing.T) {
 	oneDayAgo := timeProvider.Now().Add(-24 * time.Hour)
 
 	ctrl := gomock.NewController(t)
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := databasemocks.NewMockPool(ctrl)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 	repo := authmocks.NewMockRepository(ctrl)
+
 	svc := auth.NewService(cfg, timeProvider, dbPool, logger, crypto, mailClient, tmplManager, repo)
 
 	validAccessToken, err := jwt.NewWithClaims(
@@ -1306,7 +1383,7 @@ func TestServiceCreateAPIKeySuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	mailClient := mailclientmocks.NewMockClient(ctrl)
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
@@ -1391,12 +1468,24 @@ func TestServiceCreateAPIKeyError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			crypto.
 				EXPECT().
@@ -1460,7 +1549,7 @@ func TestServiceListAPIKeysSuccess(t *testing.T) {
 	cfg := testkitinternal.MustCreateConfig()
 
 	ctrl := gomock.NewController(t)
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -1537,12 +1626,24 @@ func TestServiceListAPIKeysError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			repo.
 				EXPECT().
@@ -1575,7 +1676,7 @@ func TestServiceFindAPIKeySuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -1632,12 +1733,24 @@ func TestServiceFindAPIKeyError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			repo.
 				EXPECT().
@@ -1670,7 +1783,7 @@ func TestServiceUpdateAPIKeySuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider.AddDate(0, 0, 1)
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -1807,12 +1920,24 @@ func TestServiceUpdateAPIKeyError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			repo.
 				EXPECT().
@@ -1845,8 +1970,8 @@ func TestServiceDeleteAPIKeySuccess(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
-	dbConn := testkitinternal.RequireCreateDatabaseConn(t, dbPool, context.Background())
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
+	dbConn := testkitinternal.RequireNewDatabaseConn(t, dbPool, context.Background())
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocoremocks.NewMockCrypto(ctrl)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
@@ -1900,12 +2025,24 @@ func TestServiceDeleteAPIKeyError(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			timeProvider := timekeeper.NewFrozenProvider()
-			dbPool := testkitinternal.RequireCreateDatabasePool(t)
+			dbPool := databasemocks.NewMockPool(ctrl)
+			dbConn := databasemocks.NewMockConn(ctrl)
 			_, _, logger := testkit.CreateInMemLogger()
 			crypto := cryptocoremocks.NewMockCrypto(ctrl)
 			mailClient := mailclientmocks.NewMockClient(ctrl)
 			tmplManager := templatesmanagermocks.NewMockManager(ctrl)
 			repo := authmocks.NewMockRepository(ctrl)
+
+			dbConn.
+				EXPECT().
+				Release().
+				MaxTimes(1)
+
+			dbPool.
+				EXPECT().
+				Acquire(gomock.Any()).
+				Return(dbConn, nil).
+				MaxTimes(1)
 
 			repo.
 				EXPECT().

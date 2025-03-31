@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/alvii147/nymphadora-api/internal/config"
+	"github.com/alvii147/nymphadora-api/internal/database"
 	"github.com/alvii147/nymphadora-api/internal/templatesmanager"
 	"github.com/alvii147/nymphadora-api/pkg/cryptocore"
 	"github.com/alvii147/nymphadora-api/pkg/errutils"
@@ -16,7 +17,6 @@ import (
 	"github.com/alvii147/nymphadora-api/pkg/mailclient"
 	"github.com/alvii147/nymphadora-api/pkg/timekeeper"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // FrontendActivationRoute is the frontend route for user activation.
@@ -91,7 +91,7 @@ type Service interface {
 type service struct {
 	config       *config.Config
 	timeProvider timekeeper.Provider
-	dbPool       *pgxpool.Pool
+	dbPool       database.Pool
 	logger       logging.Logger
 	crypto       cryptocore.Crypto
 	mailClient   mailclient.Client
@@ -103,7 +103,7 @@ type service struct {
 func NewService(
 	config *config.Config,
 	timeProvider timekeeper.Provider,
-	dbPool *pgxpool.Pool,
+	dbPool database.Pool,
 	logger logging.Logger,
 	crypto cryptocore.Crypto,
 	mailClient mailclient.Client,

@@ -226,7 +226,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	timeProvider := timekeeper.NewFrozenProvider()
-	dbPool := testkitinternal.RequireCreateDatabasePool(t)
+	dbPool := testkitinternal.RequireNewDatabasePool(t)
 	_, _, logger := testkit.CreateInMemLogger()
 	crypto := cryptocore.NewCrypto(timeProvider, cfg.SecretKey)
 	mailClient := mailclientmocks.NewMockClient(ctrl)
